@@ -1,0 +1,27 @@
+{
+  "name": "plugit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^4.6.0",
+    "koa": "^1.2.1",
+    "koa-body": "^1.4.0",
+    "koa-jwt": "^1.2.0",
+    "koa-router": "^5.4.0",
+    "koa-static": "^2.0.0",
+    "mongodb": "^2.2.4",
+    "mongoose": "^4.5.6",
+    "mongoose-timestamp": "^0.6.0",
+    "mongoose-unique-validator": "^1.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^3.1.1",
+    "eslint-plugin-react": "^5.2.2"
+  }
+}

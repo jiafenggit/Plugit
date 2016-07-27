@@ -1,6 +1,6 @@
 'use strict';
 
-const ComponentMapModel = require('./ComponentMapModel');
+const ComponentMapModel = require('../model/ComponentMapModel');
 const assert = require('assert');
 const path = require('path');
 const co = require('co');
@@ -47,6 +47,10 @@ ComponentMap.middleware = {
       yield next;
     };
   }
+};
+
+ComponentMap.clean = function* () {
+  return yield ComponentMapModel.remove();
 };
 
 ComponentMap.design = ({receptacle, type} = {}) => {

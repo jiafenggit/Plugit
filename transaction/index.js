@@ -1,6 +1,6 @@
 'use strict';
 
-const TransactionModel = require('./TransactionModel');
+const TransactionModel = require('../model/TransactionModel');
 const ObjectId = require('mongodb').ObjectId;
 const path = require('path');
 const assert = require('assert');

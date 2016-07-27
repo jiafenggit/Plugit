@@ -1,6 +1,6 @@
 'use strict';
 
-const ComponentRegistryModel = require('./ComponentRegistryModel');
+const ComponentRegistryModel = require('../model/ComponentRegistryModel');
 const assert = require('assert');
 const path = require('path');
 const co = require('co');

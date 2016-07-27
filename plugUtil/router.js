@@ -4,8 +4,7 @@ let router = require('koa-router')();
 const ComponentMap = require('./ComponentMap');
 const ComponentRegistry = require('./ComponentRegistry');
 const assert = require('assert');
-const dirWalker = require('../util/dirWalker');
-const path = require('path');
+const preLoad = require('./preLoad');
 
 //Get all the map between components and receptacle;
 router.get('/map/components', function* () {
@@ -28,18 +27,6 @@ router.put('/map/components/:receptacle', function* () {
 //Get all the registed components;
 router.get('/registry/components', function* () {
   this.body = yield ComponentRegistry.list();
-});
-
-//Pre regist all the components;
-dirWalker(path.join(__dirname, '..', 'component'), filePath => require(filePath));
-//Re regist all the components. Also clean all the components registed;
-router.put('/registry/components', function* () {
-  yield ComponentRegistry.clean();
-  dirWalker(path.join(__dirname, '..', 'component'), filePath => {
-    delete require.cache[filePath];
-    require(filePath);
-  });
-  this.body = null;
 });
 
 module.exports = router.routes();

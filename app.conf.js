@@ -15,6 +15,8 @@ module.exports = {
     pass: '',
   },
   jwt: {
-    secretKey: 'plugit',
+    secret: 'plugit',
+    cookie: 'plugit.jwt',
+    exp: 30 * 24 * 3600000
   }
 };

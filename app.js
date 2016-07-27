@@ -8,22 +8,28 @@ const jwt = require('koa-jwt');
 const errorHandler = require('./middleware/errorHandler');
 const ignoreAssets = require('./middleware/ignoreAssets');
 const logger = require('./middleware/logger');
+const jwtGenerator = require('./middleware/jwtGenerator');
 
+const path = require('path');
 const appConfig = require('./app.conf.js');
 require('./util/extension');
 require('./db');
-const path = require('path');
+// PreLoad all related files to trigger component receptacles design, components registry, plugins registry, plugins receptacles design;
+// Do not include any model, app.js, db.js and node_modules!!
+require('./plugUtil/preLoad')(['component', 'middleware', 'plugin', 'pluginUtil', 'router', 'transaction', 'util']);
 
 const app = koa();
 
+app.keys = ['Plugit', 'I like it!'];
 app.use(ignoreAssets(logger()));
 app.use(errorHandler);
 app.use(serve(__dirname + '/public'));
-app.use(jwt({ secret: appConfig.jwt.secretKey, passthrough: true }));
+app.use(jwt({ secret: appConfig.jwt.secret, passthrough: true, cookie: appConfig.jwt.cookie }));
 app.use(bodyParser({
   patchNode: true,
   multipart: true
 }));
+app.use(jwtGenerator(appConfig.jwt));
 
 app.use(require('./plugUtil/router'));
 app.use(require('./router'));

@@ -1,8 +1,8 @@
 'use strict';
 
-let router = require('koa-router')();
-let Transaction = require('../transaction');
-let ComponentMap = require('../plugUtil/ComponentMap');
+const router = require('koa-router')();
+const Transaction = require('../transaction');
+const ComponentMap = require('../plugUtil/ComponentMap');
 
 //Design the receptacle when server start;
 const createAccountMap = ComponentMap.design({ receptacle: 'createAccount', type: 'account' });
@@ -10,7 +10,7 @@ const createAccountMap = ComponentMap.design({ receptacle: 'createAccount', type
 //Init a transaction and set it pendding;
 //Try your actions and the transaction will rollback when your actions boom;
 //Commit the transaction and make a response;
-router.post('/', ComponentMap.middleware.attach(createAccountMap.receptacle), Transaction.middleware.before, Transaction.middleware.try(function* (next) {
+router.post('/', Transaction.middleware.before, ComponentMap.middleware.attach(createAccountMap.receptacle), Transaction.middleware.try(function* (next) {
 
   const action = yield this.transaction.pushAction({
     component: this.component,
@@ -29,7 +29,7 @@ router.get('/', ComponentMap.middleware.attach(listAccountMap.receptacle), funct
 });
 
 const updateAccountNameMap = ComponentMap.design({ receptacle: 'updateAccountName', type: 'account' });
-router.put('/:id', ComponentMap.middleware.attach(updateAccountNameMap.receptacle), Transaction.middleware.before, Transaction.middleware.try(function* (next) {
+router.put('/:id', Transaction.middleware.before, ComponentMap.middleware.attach(updateAccountNameMap.receptacle), Transaction.middleware.try(function* (next) {
   const {id} = this.params;
   const {name} = this.req.body;
   

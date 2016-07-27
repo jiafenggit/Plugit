@@ -1,24 +1,24 @@
 const fs = require('fs');
+const assert = require('assert');
+const path = require('path');
 
-module.exports = function walk(path, handleFile) {
-  fs.readdir(path, function (err, files) {
-    if (err) {
-      console.log(`Read dir error: ${err.message}`);
-    } else {
-      files.forEach(function (item) {
-        var tmpPath = path + '/' + item;
-        fs.stat(tmpPath, function (err1, stats) {
-          if (err1) {
-            console.log(`Stat error: ${err1.message}`);
-          } else {
-            if (stats.isDirectory()) {
-              walk(tmpPath, handleFile);
-            } else {
-              handleFile(tmpPath);
-            }
-          }
+module.exports = (paths, handleFile) => {
+  assert(Array.isArray(paths), 'paths should be an array');
+  function walk(p) {
+    fs.stat(p, (err, stats) => {
+      if (err) return;
+      if (stats.isDirectory()) {
+        fs.readdir(p, (err, files) => {
+          if (err) return;
+          files.forEach(file => {
+            walk(path.join(p, file));
+          });
         });
-      });
-    }
-  });
+      } else {
+        handleFile(p);
+      }
+    });
+  }
+
+  paths.forEach(walk);
 };

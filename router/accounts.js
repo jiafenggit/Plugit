@@ -2,7 +2,7 @@
 
 let router = require('koa-router')();
 let Transaction = require('../transaction');
-let ComponentMap = require('../map/ComponentMap');
+let ComponentMap = require('../plugUtil/ComponentMap');
 
 //Design the receptacle when server start;
 const createAccountMap = ComponentMap.design({ receptacle: 'createAccount', type: 'account' });

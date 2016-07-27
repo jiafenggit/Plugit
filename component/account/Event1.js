@@ -2,7 +2,7 @@
 
 const Base = require('./Base');
 const assert = require('assert');
-const ComponentRegistry = require('../../map/ComponentRegistry');
+const ComponentRegistry = require('../../plugUtil/ComponentRegistry');
 
 //Regist the Event1 component of account type;
 const componentRegistry = ComponentRegistry.regist({ type: 'account', name: 'Event1', description: 'The component is designed for Event1' });

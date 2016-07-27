@@ -2,7 +2,7 @@
 'use strict';
 const ObjectId = require('mongodb').ObjectId;
 const assert = require('assert');
-const ComponentRegistry = require('../map/ComponentRegistry');
+const ComponentRegistry = require('../plugUtil/ComponentRegistry');
 
 //Regist the super component;
 const componentRegistry = ComponentRegistry.regist({ type: 'base', name: 'Base', description: 'The super component that all components extends' });

@@ -25,7 +25,7 @@ app.use(bodyParser({
   multipart: true
 }));
 
-app.use(require('./map/router'));
+app.use(require('./plugUtil/router'));
 app.use(require('./router'));
 
 app.on('error', err => {

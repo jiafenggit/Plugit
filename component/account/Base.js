@@ -2,7 +2,7 @@
 
 const Component = require('../');
 const AccountModel = require('../../model/AccountModel');
-const ComponentRegistry = require('../../map/ComponentRegistry');
+const ComponentRegistry = require('../../plugUtil/ComponentRegistry');
 
 //Regist the base component of account type;
 const componentRegistry = ComponentRegistry.regist({ type: 'account', name: 'Base', description: 'The base component that all account components extends' });

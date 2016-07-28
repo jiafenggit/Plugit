@@ -1,6 +1,6 @@
 'use strict';
 
-const ComponentRegistryModel = require('../model/ComponentRegistryModel');
+const ComponentRegistryModel = require('../plugitModel/ComponentRegistryModel');
 const assert = require('assert');
 const path = require('path');
 const co = require('co');
@@ -37,7 +37,18 @@ class ComponentRegistry {
     yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name }, { $set: { description } });
   }
 
-  registOperation({name, args, description} = {}) {
+  registOperation({name, args, safe = false, description} = {}) {
+    const component = [this._type, this._name].join('/');
+    global.components = global.components || {};
+    global.registedOperations = global.registedOperations || {};
+    global.registedOperations[component] = global.registedOperations[component] || [];
+    const ins = new global.components[component]();
+    assert(ins[name], 'Operation ${name} regist do not exists!');
+    if (safe) {
+      const regExp = new RegExp(`^\\*?${name}([\\s\\S]*){yieldthis._checkSafe()`);
+      assert(regExp.test(ins[name].toString().replace(/\s/g, '')), `Operation ${name} regist in ${this.type}/${this.name} should checkSafe first!`);
+    }
+
     co(function* () {
       try {
         yield this._create();
@@ -46,12 +57,14 @@ class ComponentRegistry {
       }
       const operation = yield ComponentRegistryModel.findOne({ type: this._type, name: this._name, 'operations.name': name });
       if (!operation) {
-        yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name }, { $push: { operations: { name, args, description } } });
+        yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name }, { $push: { operations: { name, args, safe, description } } });
       } else {
-        yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name, 'operations.name': name }, { $set: { 'operations.$': { name, args, description } } });
+        yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name, 'operations.name': name }, { $set: { 'operations.$': { name, args, safe, description } } });
       }
-      console.log(`Regist operation ${name} of ${this._type} component named ${this._name} success!`);
-    }.bind(this)).catch(e => console.error(`Regist operation ${name} of ${this._type} component named ${this._name} error! Error message: ${e.message}`));
+      console.log(`Operation ${name} of component ${this.type}/${this.name} regist success!`);
+    }.bind(this)).catch(e => console.error(`Operation ${name} of component ${this.type}/${this.name} regist error! Error message: ${e.message}`));
+    //Globally regist operation of component
+    global.registedOperations[component].push(name);
   }
 
   registAttribute({name, type, description} = {}) {
@@ -67,8 +80,8 @@ class ComponentRegistry {
       } else {
         yield ComponentRegistryModel.findOneAndUpdate({ type: this._type, name: this._name, 'attributes.name': name }, { $set: { 'attributes.$': { name, type, description } } });
       }
-      console.log(`Regist attribute ${name} of ${this._type} component named ${this._name} success!`);
-    }.bind(this)).catch(e => console.error(`Regist attribute ${name} of ${this._type} component named ${this._name} error! Error message: ${e.message}`));
+      console.log(`Attribute ${name} of component ${this._type}/${this._name} regist success!`);
+    }.bind(this)).catch(e => console.error(`Attribute ${name} of component ${this._type}/${this._name} regist error! Error message: ${e.message}`));
   }
 
 }
@@ -81,7 +94,10 @@ ComponentRegistry.clean = function* () {
   return yield ComponentRegistryModel.remove();
 };
 
-ComponentRegistry.regist = ({type, name, description} = {}) => {
+ComponentRegistry.regist = (Component, {type, name, description} = {}) => {
+  global.components = global.components || {};
+  const component = [type, name].join('/');
+  assert(!global.components[component], `Component ${component} has registed in global!`);
   const componentRegistry = new ComponentRegistry(type, name);
   co(function* () {
     try {
@@ -93,8 +109,10 @@ ComponentRegistry.regist = ({type, name, description} = {}) => {
     if (componentRegistryInfo.description !== description) {
       yield componentRegistry._updateComponentDescription(description);
     }
-    console.log(`Regist ${type} component named ${name} success!`);
-  }).catch(e => console.error(`Regist ${type} component named ${name} error! Error message: ${e.message}`));
+    console.log(`Regist component ${type}/${name} success!`);
+  }).catch(e => console.error(`Regist component ${type}/${name} error! Error message: ${e.message}`));
+  //Globally regist the component;
+  global.components[component] = Component;
   return componentRegistry;
 };
 

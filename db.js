@@ -33,7 +33,7 @@ conn.on('connected', () => {
 module.exports = conn;
 
 const mongooseTimestamp = require('mongoose-timestamp');
-const mongooseRollbackable = require('./transaction/mongoose-rollbackable');
+const mongooseRollbackable = require('./plugitUtil/mongoose-rollbackable');
 const uniqueValidator = require('mongoose-unique-validator');
 
 mongoose.plugin(mongooseTimestamp);

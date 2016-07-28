@@ -12,11 +12,11 @@ const jwtGenerator = require('./middleware/jwtGenerator');
 
 const path = require('path');
 const appConfig = require('./app.conf.js');
-require('./util/extension');
 require('./db');
+require('./plugitUtil/extension');
 // PreLoad all related files to trigger component receptacles design, components registry, plugins registry, plugins receptacles design;
 // Do not include any model, app.js, db.js and node_modules!!
-require('./plugUtil/preLoad')(['component', 'middleware', 'plugin', 'pluginUtil', 'router', 'transaction', 'util']);
+require('./plugitUtil/preLoad')(appConfig.preLoad);
 
 const app = koa();
 
@@ -31,7 +31,7 @@ app.use(bodyParser({
 }));
 app.use(jwtGenerator(appConfig.jwt));
 
-app.use(require('./plugUtil/router'));
+app.use(require('./plugitUtil/router'));
 app.use(require('./router'));
 
 app.on('error', err => {

@@ -1,16 +1,16 @@
 'use strict';
 
 const router = require('koa-router')();
-const Transaction = require('../transaction');
-const ComponentMap = require('../plugUtil/ComponentMap');
+const Transaction = require('../plugitUtil/transaction');
+const ComponentMap = require('../plugitUtil/ComponentMap');
 
 //Design the receptacle when server start;
-const createAccountMap = ComponentMap.design({ receptacle: 'createAccount', type: 'account' });
+const createAccountMap = ComponentMap.design({ receptacle: 'createAccount', type: 'Account' });
 //Attach the receptacle desinged;
 //Init a transaction and set it pendding;
 //Try your actions and the transaction will rollback when your actions boom;
 //Commit the transaction and make a response;
-router.post('/', Transaction.middleware.before, ComponentMap.middleware.attach(createAccountMap.receptacle), Transaction.middleware.try(function* (next) {
+router.post('/', Transaction.middleware.inject, ComponentMap.middleware.attach(createAccountMap.receptacle), function* (next) {
 
   const action = yield this.transaction.pushAction({
     component: this.component,
@@ -21,18 +21,18 @@ router.post('/', Transaction.middleware.before, ComponentMap.middleware.attach(c
   this.body = yield action.instance.info();
 
   yield next;
-}), Transaction.middleware.after);
+});
 
-const listAccountMap = ComponentMap.design({ receptacle: 'listAccount', type: 'account' });
+const listAccountMap = ComponentMap.design({ receptacle: 'listAccount', type: 'Account' });
 router.get('/', ComponentMap.middleware.attach(listAccountMap.receptacle), function* (next) {
   this.body = yield this.Component.list();
 });
 
-const updateAccountNameMap = ComponentMap.design({ receptacle: 'updateAccountName', type: 'account' });
-router.put('/:id', Transaction.middleware.before, ComponentMap.middleware.attach(updateAccountNameMap.receptacle), Transaction.middleware.try(function* (next) {
+const updateAccountNameMap = ComponentMap.design({ receptacle: 'updateAccountName', type: 'Account' });
+router.put('/:id', Transaction.middleware.inject, ComponentMap.middleware.attach(updateAccountNameMap.receptacle), function* (next) {
   const {id} = this.params;
   const {name} = this.req.body;
-  
+
   const action = yield this.transaction.pushAction({
     component: this.component,
     operation: 'updateName',
@@ -43,6 +43,6 @@ router.put('/:id', Transaction.middleware.before, ComponentMap.middleware.attach
   this.body = yield action.instance.info();
 
   yield next;
-}), Transaction.middleware.after);
+});
 
 module.exports = router.routes();

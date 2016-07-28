@@ -5,6 +5,7 @@ const ComponentMap = require('./ComponentMap');
 const ComponentRegistry = require('./ComponentRegistry');
 const assert = require('assert');
 const preLoad = require('./preLoad');
+const appConfig = require('../app.conf.js');
 
 //Get all the map between components and receptacle;
 router.get('/map/components', function* () {
@@ -27,6 +28,15 @@ router.put('/map/components/:receptacle', function* () {
 //Get all the registed components;
 router.get('/registry/components', function* () {
   this.body = yield ComponentRegistry.list();
+});
+
+//re regist all the plugins, components and receptacles;
+router.put('/registry', function *() {
+  global.components = [];
+  yield ComponentMap.clean();
+  yield ComponentRegistry.clean();
+  preLoad(appConfig.preLoad);
+  this.body = null;
 });
 
 module.exports = router.routes();

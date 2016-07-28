@@ -1,6 +1,6 @@
 'use strict';
 
-const ComponentMapModel = require('../model/ComponentMapModel');
+const ComponentMapModel = require('../plugitModel/ComponentMapModel');
 const assert = require('assert');
 const path = require('path');
 const co = require('co');

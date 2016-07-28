@@ -1,6 +1,6 @@
 'use strict';
 
-const dirWalker = require('../util/dirWalker');
+const dirWalker = require('../plugitUtil/dirWalker');
 const path = require('path');
 
 module.exports = (dirs = []) => {

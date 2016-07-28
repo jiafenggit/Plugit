@@ -2,12 +2,6 @@
 
 const Component = require('../');
 const AccountModel = require('../../model/AccountModel');
-const ComponentRegistry = require('../../plugUtil/ComponentRegistry');
-
-//Regist the base component of account type;
-const componentRegistry = ComponentRegistry.regist({ type: 'account', name: 'Base', description: 'The base component that all account components extends' });
-//Regist the operations
-componentRegistry.registOperation({ name: '* updateName', args: 'name:String', description: 'Update the name' });
 
 class Account extends Component {
 
@@ -15,8 +9,9 @@ class Account extends Component {
     super(id, AccountModel);
   }
 
-  * updateName(name) {
-    yield this._model.findByIdAndUpdate(this._id, {$set: {name}});
+  * updateName(name, transaction) {
+    yield this._checkSafe();
+    yield this._model.findByIdAndUpdate(this._id, { $set: { name } });
   }
 
 }
@@ -26,3 +21,10 @@ Account.list = function* (query) {
 };
 
 module.exports = Account;
+
+const ComponentRegistry = require('../../plugitUtil/ComponentRegistry');
+
+//Regist the base component of account type;
+const componentRegistry = ComponentRegistry.regist(Account, { type: 'Account', name: 'Base', description: 'The base component that all account components extends' });
+//Regist the operations
+componentRegistry.registOperation({ name: 'updateName', args: 'name:String', safe: true, description: 'Update the name' });

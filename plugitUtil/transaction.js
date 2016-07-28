@@ -1,6 +1,6 @@
 'use strict';
 
-const TransactionModel = require('../model/TransactionModel');
+const TransactionModel = require('../plugitModel/TransactionModel');
 const ObjectId = require('mongodb').ObjectId;
 const path = require('path');
 const assert = require('assert');
@@ -21,7 +21,7 @@ class Transaction {
 
   * _create() {
     if (!(yield this.info())) {
-      this._id = (yield TransactionModel({ lastModifiedAt: new Date() }).save()).id;
+      this._id = (yield TransactionModel().save()).id;
     }
     return this;
   }
@@ -29,18 +29,24 @@ class Transaction {
   * pend() {
     const {state} = yield this.info();
     assert(state == 'init', 'Transaction state is not init');
-    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'pendding' }, $currentDate: { lastModifiedAt: true } });
+    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'pendding' } });
   }
 
   * pushAction({component, instance, operation}) {
+    assert(operation, 'Action should have an operation!');
+    //Check the transaction state;
     const {state} = yield this.info();
     assert(state == 'pendding', 'Transaction state is not pendding');
-    const Component = require(path.join(__dirname, '..', 'component', component));
+    //Check component registry;
+    const Component = global.components[component];
     assert(Component, `Component ${component} is not defined!`);
+    //Check operation registry;
+    const registedOperations = global.registedOperations[component];
+    assert(registedOperations.includes(operation), `Operation of component ${component} has not registed!`);
+    //Bind transaction to component and generate an Action;
     const ins = new Component(instance);
-    assert(operation && ins[operation], `Component ${component} has no operation ${operation}`);
     const prev = yield ins.info();
-    yield ins.bindTransaction(this._id);
+    yield ins._bindTransaction(this._id);
     const actionId = new ObjectId();
     yield TransactionModel.findByIdAndUpdate(this._id, {
       $push: {
@@ -51,14 +57,14 @@ class Transaction {
           operation,
           prev
         }
-      },
-      $currentDate: { lastModifiedAt: true }
+      }
     });
+    //Return the Action to workflow;
     return {
       exec: function* (...params) {
         const insInfo = yield ins.info();
         assert(!insInfo || insInfo.transaction == this._id, 'The transaction has no access to instance');
-        yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': actionId }, { $set: { 'actions.$.state': 'applied' }, $currentDate: { lastModifiedAt: true } });
+        yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': actionId }, { $set: { 'actions.$.state': 'applied' } });
         yield ins[operation](...params);
       }.bind(this),
       instance: ins
@@ -69,7 +75,7 @@ class Transaction {
     const {state, actions} = yield this.info();
     assert(state == 'pendding', 'Transaction state is not pendding');
     assert(actions.every(action => action.state == 'applied'), 'Some actions has not applied');
-    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'applied' }, $currentDate: { lastModifiedAt: true } });
+    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'applied' } });
     yield this._commitAllActions();
   }
 
@@ -77,7 +83,7 @@ class Transaction {
     const {state, actions} = yield this.info();
     assert(state == 'applied', 'Transaction state is not applied');
     for (let action of actions) {
-      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'committed' }, $currentDate: { lastModifiedAt: true } });
+      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'committed' } });
     }
   }
 
@@ -89,7 +95,7 @@ class Transaction {
     assert(state == 'applied', 'Transaction state is not applied');
     assert(actions.every(action => action.state == 'committed'), 'Some actions has not committed');
     yield this._unbindAllInstances();
-    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'committed' } , $currentDate: { lastModifiedAt: true } });
+    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'committed' } });
   }
 
   * _cancelAllActions() {
@@ -97,7 +103,7 @@ class Transaction {
     assert(state == 'rollback', 'Transaction state is not rollback');
     for (let action of actions.reverse()) {
       if (['applied', 'committed'].includes(action.state)) {
-        const Component = require(path.join(__dirname, '..', 'component', action.component));
+        const Component = global.components[action.component];
         assert(Component, `Component ${action.component} is not defined!`);
         const ins = new Component(action.instance);
         const insInfo = yield ins.info();
@@ -109,7 +115,7 @@ class Transaction {
           yield model.findByIdAndRemove(ins.id);
         }
       }
-      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'cancelled' }, $currentDate: { lastModifiedAt: true }  });
+      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'cancelled' } });
     }
   }
 
@@ -117,12 +123,12 @@ class Transaction {
     const {actions, state} = yield this.info();
     assert(['applied', 'rollback'].includes(state), 'Transaction state is not rollback or applied');
     for (let action of actions) {
-      const Component = require(path.join(__dirname, '..', 'component', action.component));
+      const Component = global.components[action.component];
       assert(Component, `Component ${action.component} is not defined!`);
       const ins = new Component(action.instance);
       const insInfo = yield ins.info();
       if (!insInfo || insInfo.transaction == this._id) {
-        yield ins.unbindTransaction();
+        yield ins._unbindTransaction(this._id);
       }
     }
   }
@@ -131,10 +137,10 @@ class Transaction {
     const {state} = yield this.info();
     switch (state) {
       case 'init':
-        yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'rollback' }, $currentDate: { lastModifiedAt: true }  });
+        yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'rollback' } });
         break;
       case 'pendding':
-        yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'rollback' }, $currentDate: { lastModifiedAt: true }  });
+        yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'rollback' } });
         yield this._cancelAllActions();
         break;
       case 'rollback':
@@ -153,7 +159,7 @@ class Transaction {
     assert(state == 'rollback', 'Transaction state is not rollback');
     assert(actions.every(action => action.state == 'cancelled'), 'Some actions has not cancelled');
     yield this._unbindAllInstances();
-    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'cancelled' } , $currentDate: { lastModifiedAt: true } });
+    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'cancelled' } });
   }
 
   // It's an unsafe operation!!! Some versions of data will lost! 
@@ -161,7 +167,7 @@ class Transaction {
     const {actions, state} = yield this.info();
     assert(state == 'committed', 'Transaction state is not committed');
     for (let action of actions.reverse()) {
-      const Component = require(path.join(__dirname, '..', 'component', action.component));
+      const Component = global.components[action.component];
       assert(Component, `Component ${action.component} is not defined!`);
       const ins = new Component(action.instance);
       const insInfo = yield ins.info();
@@ -172,9 +178,9 @@ class Transaction {
       } else {
         yield model.findByIdAndRemove(ins.id);
       }
-      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'reverted' } , $currentDate: { lastModifiedAt: true } });
+      yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'reverted' } });
     }
-    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'reverted' }, $currentDate: { lastModifiedAt: true }  });
+    yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'reverted' } });
   }
 }
 
@@ -185,26 +191,17 @@ Transaction.create = function* (id) {
 };
 
 Transaction.middleware = {
-  before: function* (next) {
+  inject: function* (next) {
     this.transaction = yield Transaction.create();
     yield this.transaction.pend();
-    yield next;
-  },
-  after: function* (next) {
+    try {
+      yield next;
+    } catch (e) {
+      yield this.transaction.cancel();
+      throw e;
+    }
     yield this.transaction.commit();
-    yield next;
-  },
-  try: function (middleware) {
-    return function* (next) {
-      try {
-        yield middleware.bind(this)(next);
-      } catch (e) {
-        yield this.transaction.cancel();
-        throw e;
-      }
-    };
   }
 };
-
 
 module.exports = Transaction;

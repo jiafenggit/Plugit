@@ -19,5 +19,5 @@ module.exports = {
     cookie: 'plugit.jwt',
     exp: 30 * 24 * 3600000
   },
-  preLoad: ['component', 'middleware', 'plugin', 'pluginUtil', 'router', 'transaction', 'util']
+  hotLoad: ['middleware', 'router', 'util']
 };

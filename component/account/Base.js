@@ -3,7 +3,7 @@
 const Component = require('../');
 const AccountModel = require('../../model/AccountModel');
 
-class Account extends Component {
+class Base extends Component {
 
   constructor(id) {
     super(id, AccountModel);
@@ -16,15 +16,13 @@ class Account extends Component {
 
 }
 
-Account.list = function* (query) {
+Base.list = function* (query) {
   return yield AccountModel.find(query);
 };
 
-module.exports = Account;
-
-const ComponentRegistry = require('../../plugitUtil/ComponentRegistry');
+module.exports = Base;
 
 //Regist the base component of account type;
-const componentRegistry = ComponentRegistry.regist(Account, { type: 'Account', name: 'Base', description: 'The base component that all account components extends' });
+const componentRegistry = global.ComponentRegistry.regist(Base, { type: 'Account', description: 'The base component that all account components extends' });
 //Regist the operations
 componentRegistry.registOperation({ name: 'updateName', args: 'name:String', safe: true, description: 'Update the name' });

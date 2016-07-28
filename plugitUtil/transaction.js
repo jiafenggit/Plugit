@@ -39,12 +39,11 @@ class Transaction {
     assert(state == 'pendding', 'Transaction state is not pendding');
     //Check component registry;
     const Component = global.components[component];
-    assert(Component, `Component ${component} is not defined!`);
+    assert(Component, `Component [${component}] is not defined!`);
     //Check operation registry;
-    const registedOperations = global.registedOperations[component];
-    assert(registedOperations.includes(operation), `Operation of component ${component} has not registed!`);
-    //Bind transaction to component and generate an Action;
     const ins = new Component(instance);
+    assert(ins[operation], `Operation [${operation}] of component [${component}] has not registed!`);
+    //Bind transaction to component and generate an Action;
     const prev = yield ins.info();
     yield ins._bindTransaction(this._id);
     const actionId = new ObjectId();
@@ -53,7 +52,7 @@ class Transaction {
         actions: {
           _id: actionId,
           component,
-          instance,
+          instance: ins.id,
           operation,
           prev
         }

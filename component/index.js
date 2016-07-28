@@ -3,6 +3,7 @@
 const ObjectId = require('mongodb').ObjectId;
 const assert = require('assert');
 
+//Super component only for extends;
 class Component {
   constructor(id, model = {}) {
     this._id = id || new ObjectId();
@@ -55,10 +56,9 @@ class Component {
 
 module.exports = Component;
 
-const ComponentRegistry = require('../plugitUtil/ComponentRegistry');
 
 //Regist the super component;
-const componentRegistry = ComponentRegistry.regist(Component, { type: 'Base', name: 'Base', description: 'The super component that all components extends' });
+const componentRegistry = global.ComponentRegistry.regist(Component, { type: 'Base', description: 'The super component that all components extends' });
 //Regist the attributes of component;
 componentRegistry.registAttribute({ name: 'id', type: 'ObjectId', description: 'The entity id of the component instance' });
 componentRegistry.registAttribute({ name: 'model', type: 'Model', description: 'The model related to the component instance' });

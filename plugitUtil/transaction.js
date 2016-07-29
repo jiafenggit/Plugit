@@ -32,42 +32,32 @@ class Transaction {
     yield TransactionModel.findByIdAndUpdate(this._id, { $set: { state: 'pendding' } });
   }
 
-  * pushAction({component, instance, operation}) {
+  * pushAction({component, operation}, ...params) {
     assert(operation, 'Action should have an operation!');
     //Check the transaction state;
     const {state} = yield this.info();
     assert(state == 'pendding', 'Transaction state is not pendding');
-    //Check component registry;
-    const Component = global.components[component];
-    assert(Component, `Component [${component}] is not defined!`);
     //Check operation registry;
-    const ins = new Component(instance);
-    assert(ins[operation], `Operation [${operation}] of component [${component}] has not registed!`);
+    assert(component[operation], `Operation [${operation}] of component [${component.name}] has not registed!`);
     //Bind transaction to component and generate an Action;
-    const prev = yield ins.info();
-    yield ins._bindTransaction(this._id);
+    yield component._bindTransaction(this._id);
     const actionId = new ObjectId();
     yield TransactionModel.findByIdAndUpdate(this._id, {
       $push: {
         actions: {
           _id: actionId,
-          component,
-          instance: ins.id,
+          component: component.name,
+          instance: component.id,
           operation,
-          prev
+          prev:  yield component.info()
         }
       }
     });
-    //Return the Action to workflow;
-    return {
-      exec: function* (...params) {
-        const insInfo = yield ins.info();
-        assert(!insInfo || insInfo.transaction == this._id, 'The transaction has no access to instance');
-        yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': actionId }, { $set: { 'actions.$.state': 'applied' } });
-        yield ins[operation](...params);
-      }.bind(this),
-      instance: ins
-    };
+    //Execute the action.
+    const componentInfo = yield component.info();
+    assert(!componentInfo || componentInfo.transaction == this._id, 'The transaction has no access to instance');
+    yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': actionId }, { $set: { 'actions.$.state': 'applied' } });
+    yield component[operation](...params);
   }
 
   * _apply() {
@@ -104,14 +94,15 @@ class Transaction {
       if (['applied', 'committed'].includes(action.state)) {
         const Component = global.components[action.component];
         assert(Component, `Component ${action.component} is not defined!`);
-        const ins = new Component(action.instance);
-        const insInfo = yield ins.info();
-        assert(!insInfo || insInfo.transaction == this._id, 'The transaction has no access to instance');
-        const model = ins.model;
+        const component = new Component();
+        component.id = action.instance;
+        const componentInfo = yield component.info();
+        assert(!componentInfo || componentInfo.transaction == this._id, 'The transaction has no access to instance');
+        const model = component.model;
         if (action.prev) {
-          yield model.findByIdAndUpdate(ins.id, action.prev, { upsert: true, overwrite: true });
+          yield model.findByIdAndUpdate(component.id, action.prev, { upsert: true, overwrite: true });
         } else {
-          yield model.findByIdAndRemove(ins.id);
+          yield model.findByIdAndRemove(component.id);
         }
       }
       yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'cancelled' } });
@@ -123,11 +114,12 @@ class Transaction {
     assert(['applied', 'rollback'].includes(state), 'Transaction state is not rollback or applied');
     for (let action of actions) {
       const Component = global.components[action.component];
-      assert(Component, `Component ${action.component} is not defined!`);
-      const ins = new Component(action.instance);
-      const insInfo = yield ins.info();
-      if (!insInfo || insInfo.transaction == this._id) {
-        yield ins._unbindTransaction(this._id);
+      assert(Component, `Component [${action.component}] is not defined!`);
+      const component = new Component();
+      component.id = action.instance;
+      const componentInfo = yield component.info();
+      if (!componentInfo || componentInfo.transaction == this._id) {
+        yield component._unbindTransaction(this._id);
       }
     }
   }
@@ -168,14 +160,15 @@ class Transaction {
     for (let action of actions.reverse()) {
       const Component = global.components[action.component];
       assert(Component, `Component ${action.component} is not defined!`);
-      const ins = new Component(action.instance);
-      const insInfo = yield ins.info();
-      assert(!insInfo || !insInfo.transaction || insInfo.transaction == this._id, 'The transaction has no access to instance');
-      const model = ins.model;
+      const component = new Component();
+      component.id = action.instance;
+      const componentInfo = yield component.info();
+      assert(!componentInfo || !componentInfo.transaction || componentInfo.transaction == this._id, 'The transaction has no access to instance');
+      const model = component.model;
       if (action.prev) {
-        yield model.findByIdAndUpdate(ins.id, action.prev, { upsert: true, overwrite: true });
+        yield model.findByIdAndUpdate(component.id, action.prev, { upsert: true, overwrite: true });
       } else {
-        yield model.findByIdAndRemove(ins.id);
+        yield model.findByIdAndRemove(component.id);
       }
       yield TransactionModel.findOneAndUpdate({ _id: this._id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'reverted' } });
     }

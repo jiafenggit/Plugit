@@ -6,6 +6,9 @@ const koa = require('koa');
 const serve = require('koa-static');
 const bodyParser = require('koa-body');
 const jwt = require('koa-jwt');
+const rbac = require('koa-rbac');
+const rules = require('./rbac/rules.json');
+const RBACProvider = require('./rbac/RBACProvider');
 
 const path = require('path');
 const assert = require('assert');
@@ -22,7 +25,8 @@ co(function* () {
   const errorHandler = require('./middleware/errorHandler');
   const ignoreAssets = require('./middleware/ignoreAssets');
   const logger = require('./middleware/logger');
-  const jwtGenerator = require('./middleware/jwtGenerator');
+
+  const Transaction = require('./plugitUtil/transaction');
 
   // Initial the koa app;
   const app = koa();
@@ -32,14 +36,25 @@ co(function* () {
   app.use(ignoreAssets(logger()));
   app.use(errorHandler);
   app.use(serve(__dirname + '/public'));
-  app.use(jwt({ secret: appConfig.jwt.secret, passthrough: true, cookie: appConfig.jwt.cookie }));
+  app.use(jwt({ secret: appConfig.jwt.secret, passthrough: true }));
   app.use(bodyParser({
     patchNode: true,
     multipart: true
   }));
-  app.use(jwtGenerator(appConfig.jwt));
+  app.use(rbac.middleware({
+    rbac: new rbac.RBAC({
+      provider: new RBACProvider(rules)
+    }),
+    identity: ctx => {
+      if (!ctx.state.user) ctx.throw(401);
+      return ctx.state.user;
+    }
+  }));
 
   app.use(require('./plugitUtil/router'));
+  //Inject a transaction for all business routes;
+  //Try your actions and the transaction will rollback when your actions boom;
+  app.use(Transaction.middleware.inject);
   app.use(require('./router'));
 
   app.on('error', err => {

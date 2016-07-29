@@ -20,9 +20,9 @@ global.notificationCenter.control(co.wrap(function* (pluginMap, props, ...params
   const {plugins} = yield pluginMap.info();
   plugins.forEach(plugin => {
     try {
-      new global.plugins[plugin.name](props).touch(...params);
+      new global.plugins[plugin.name](plugin.settings, props).touch(...params);
     } catch (e) {
-      // do nothing.
+      console.error(`Plugin [${plugin.name}] throw an error! Error message: ${e.message}`);
     }
   });
 }));

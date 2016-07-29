@@ -4,6 +4,7 @@ const conn = require('../db');
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
 
 //Plugin has no type 
 let schema = new Schema({
@@ -11,7 +12,9 @@ let schema = new Schema({
   receptacle: { type: String, required: [true, 'plugin receptacle is requried!'], index: true, unique: true },
   description: String,
   plugins: [{
-    name: { type: String, required: [true, 'plugin name is requried!'] },
+    plugin: { type: ObjectId, required: [true, 'plugin ref is required!'], ref: 'plugin_registry' },
+    name: { type: String, required: [true, 'plugin name is required!'] },
+    settings: {},
     pluggedAt: Date
   }]
 });

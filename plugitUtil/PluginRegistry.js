@@ -27,7 +27,31 @@ class PluginRegistry {
     yield PluginRegistryModel.findOneAndUpdate({ name: this._name }, { $set: { description, tags } });
   }
 
+  registSetting({key, dft, regExp = '^[\\s\\S]*$', description} = {}) {
+    assert(key && dft, `Setting [${key}] of plugin [${this.name}] key and default value are required!`);
+    const id = [this._name, key].join('/');
+    PluginRegistry.registedSettings = PluginRegistry.registedSettings || [];
+    assert(!PluginRegistry.registedSettings.includes(id), `Setting [${key}] in plugin [${this._name}] has registed`);
+    PluginRegistry.registedSettings.push(id);
+    co(function* () {
+      try {
+        yield this._create();
+      } catch (e) {
+        //do nothing.
+      }
+      const setting = yield PluginRegistryModel.findOne({ name: this._name, 'settings.key': key });
+      if (!setting) {
+        yield PluginRegistryModel.findOneAndUpdate({ name: this._name }, { $push: { settings: { key, dft, regExp, description } } });
+      } else {
+        yield PluginRegistryModel.findOneAndUpdate({ name: this._name, 'settings.key': key }, { $set: { 'settings.$': { key, dft, regExp, description } } });
+      }
+      console.log(`Setting [${key}] of Plugin [${this._name}] regist success!`);
+    }.bind(this)).catch(e => console.error(`Setting [${key}] of Plugin [${this._name}] regist error! Error message: ${e.message}`));
+  }
+
 }
+
+PluginRegistry.registedSettings = [];
 
 PluginRegistry.list = function* (query) {
   return yield PluginRegistryModel.find(query);
@@ -48,10 +72,13 @@ PluginRegistry.regist = (Plugin, {description, tags = []} = {}) => {
   global.plugins[name] = Plugin;
   const pluginRegistry = new PluginRegistry(name);
   co(function* () {
-    const pluginRegistryInfo = yield pluginRegistry.info();
-    if (!pluginRegistryInfo) {
+    try {
       yield pluginRegistry._create({ description, tags });
-    } else if (pluginRegistryInfo.description !== description || pluginRegistryInfo.tags.join('|') !== tags.join('|')) {
+    } catch (e) {
+      // do nothing.
+    }
+    const pluginRegistryInfo = yield pluginRegistry.info();
+    if (pluginRegistryInfo.description !== description || pluginRegistryInfo.tags.join('|') !== tags.join('|')) {
       yield pluginRegistry._updatePluginDescriptionAndTags({ description, tags });
     }
     console.log(`Regist plugin [${name}] success!`);

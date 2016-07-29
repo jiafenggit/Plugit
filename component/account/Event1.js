@@ -13,9 +13,11 @@ class Event1 extends Base {
 
 }
 
+Event1.type = 'Account';
+
 module.exports = Event1;
 
 //Regist the Event1 component of account type;
-const componentRegistry = global.ComponentRegistry.regist(Event1, { type: 'Account', description: 'The component is designed for Event1' });
+const componentRegistry = global.ComponentRegistry.regist(Event1, { description: 'The component is designed for Event1' });
 //Regist the operations
 componentRegistry.registOperation({ name: 'updateName', args: 'name:String', safe: true, description: 'Update the name' });

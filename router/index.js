@@ -1,13 +1,17 @@
 'use strict';
 
-let router = require('koa-router')();
+const router = require('koa-router')();
+const jwt = require('koa-jwt');
+const appConfig = require('../app.conf.js');
 
-router.post('/login', function* () {
-  this.body = null;
-  console.log(this.state.user);
-  if (!this.state.user) {
-    this.state.genUser = this.req.body;
-  }
+router.post('/auth', function* () {
+  let auth = this.req.body;
+  auth.exp = auth.exp || Math.round((Date.now() + appConfig.jwt.exp) / 1000);
+  this.body = {jwt: jwt.sign(auth, appConfig.jwt.secret)};
+});
+
+router.get('/auth', function* () {
+  this.body = this.state.user;
 });
 
 router.use('/accounts', require('./accounts'));

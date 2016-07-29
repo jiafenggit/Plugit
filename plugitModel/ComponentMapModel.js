@@ -4,17 +4,20 @@ const conn = require('../db');
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
 
 let schema = new Schema({
   type: { type: String, required: [true, 'component type is required!'], index: true },
-  name: { type: String, required: [true, 'component name is required!'], index: true, default: 'Base' },
+  component: {type: ObjectId, required: [true, 'component ref is required!'], ref: 'component_registry'},
+  settings: {},
+  name: { type: String, required: [true, 'component name is required!'], index: true },
   receptacle: { type: String, required: [true, 'component receptacle is required!'], index: true },
   workflow: { type: String, required: [true, 'workflow is required!'], index: true },
   group: { type: String, required: [true, 'group is requried!'], index: true },
   description: String
 });
 
-schema.virtual('component').get(function () {
+schema.virtual('componentName').get(function () {
   return [this.type, this.name].join('/');
 });
 

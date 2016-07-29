@@ -16,8 +16,7 @@ module.exports = {
   },
   jwt: {
     secret: 'plugit',
-    cookie: 'plugit.jwt',
-    exp: 30 * 24 * 3600000
+    exp: 3600000
   },
   hotLoad: ['middleware', 'router', 'util']
 };

@@ -1,6 +1,7 @@
 'use strict';
 
 const PluginMapModel = require('../plugitModel/PluginMapModel');
+const PluginRegistry = require('./PluginRegistry');
 const assert = require('assert');
 const path = require('path');
 const co = require('co');
@@ -36,8 +37,36 @@ class PluginMap {
 
   * pushPlugin(name) {
     const plugin = yield PluginMapModel.findOne({ receptacle: this._receptacle, group: this._group, 'plugins.name': name });
-    if (plugin) return;
-    yield PluginMapModel.findOneAndUpdate({ receptacle: this._receptacle, group: this._group }, { $push: { plugins: { name, pluggedAt: new Date() } } });
+    assert(!plugin, `Plugin ${name} has been plugged`);
+    const pluginRegistry = new PluginRegistry(name);
+    const pluginRegistryInfo = yield pluginRegistry.info();
+    assert(pluginRegistryInfo, `Plugin [${name}] is not registed!`);
+    const id = pluginRegistryInfo._id;
+    let settings = {};
+    pluginRegistryInfo.settings.forEach(setting => {
+      settings[setting.key] = setting.dft;
+    });
+    yield PluginMapModel.findOneAndUpdate({ receptacle: this._receptacle, group: this._group }, { $push: { plugins: { plugin: pluginRegistryInfo._id, name, settings, pluggedAt: new Date() } } });
+  }
+
+  * updatePluginSettingValue(name, key, value) {
+    const plugin = yield PluginMapModel.findOne({ receptacle: this._receptacle, group: this._group, 'plugins.name': name });
+    assert(plugin, `Plugin ${name} is not plugged!`);
+    const pluginRegistry = new PluginRegistry(name);
+    const pluginRegistryInfo = yield pluginRegistry.info();
+    assert(pluginRegistryInfo, `Plugin [${name}] is not registed!`);
+    let regExp;
+    pluginRegistryInfo.settings.forEach(setting => {
+      if (setting.key == key) {
+        regExp = new RegExp(setting.regExp);
+        return false;
+      }
+    });
+    assert(regExp, `Setting [${key}] of plugin [${this._group}/${this._receptacle}] is not registed!`);
+    assert(regExp.test(value), `Setting value ${value} do not match RegExp ${regExp}`);
+    const data = {};
+    data[`plugins.$.settings.${key}`] = value;
+    yield PluginMapModel.findOneAndUpdate({ receptacle: this._receptacle, group: this._group, 'plugins.name': name }, { $set: data });
   }
 
   * pullPlugin(name) {

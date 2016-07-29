@@ -18,6 +18,8 @@
 ---
 ## Component
 ---
+## Plugin
+---
 ## Transaction
 ---
 ## Workflow

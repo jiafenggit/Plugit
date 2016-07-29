@@ -1,12 +1,13 @@
 'use strict';
 
-let router = require('koa-router')();
+const router = require('koa-router')();
 const ComponentMap = require('./ComponentMap');
 const ComponentRegistry = require('./ComponentRegistry');
 const PluginMap = require('./PluginMap');
 const PluginRegistry = require('./PluginRegistry');
 const assert = require('assert');
 const hotLoad = require('./hotLoad');
+const rbac = require('koa-rbac');
 
 //Get all the map between components and receptacles;
 router.get('/map/components', function* () {
@@ -16,7 +17,6 @@ router.get('/map/components', function* () {
 //Update the component name of receptacle by searching in ComponentRegistry;
 router.put('/map/components/:group/:workflow/:receptacle/name', function* () {
   const {name} = this.req.body;
-  console.log(this.params);
   const {receptacle, group, workflow} = this.params;
   const componentMap = new ComponentMap(group, workflow, receptacle);
   const componentMapInfo = yield componentMap.info();
@@ -55,18 +55,28 @@ router.delete('/map/plugins/:group/:receptacle/plugins/:plugin', function* () {
   this.body = yield pluginMap.info();
 });
 
+//Update a plugin setting
+router.put('/map/plugins/:group/:receptacle/plugins/:plugin/settings/:key', function* () {
+  const {receptacle, group, plugin, key} = this.params;
+  const {value} = this.req.body;
+  const pluginMap = new PluginMap(group, receptacle);
+  const pluginMapInfo = yield pluginMap.info();
+  assert(pluginMapInfo, 'Plugin map is not exists!');
+  this.body = yield pluginMap.updatePluginSettingValue(plugin, key, value);
+});
+
 //Get all the registed components;
 router.get('/registry/components', function* () {
   this.body = yield ComponentRegistry.list();
 });
 
 //Get all the registed plugins;
-router.get('/registry/plugins', function *() {
+router.get('/registry/plugins', function* () {
   this.body = yield PluginRegistry.list();
 });
 
 //re regist all the plugins, components and receptacles;
-router.put('/registry', function* () {
+router.put('/registry', rbac.allow(['super admin api']), function* () {
   yield ComponentMap.clean();
   yield ComponentRegistry.clean();
   yield PluginMap.clean();

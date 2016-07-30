@@ -71,6 +71,8 @@ class Component {
 
 }
 
+Component.model = {};
+
 Component.type = 'Base';
 
 module.exports = Component;

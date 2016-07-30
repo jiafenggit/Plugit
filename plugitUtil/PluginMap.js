@@ -50,6 +50,7 @@ class PluginMap {
   }
 
   * updatePluginSettingValue(name, key, value) {
+    assert(name && key && value, 'Plugin name, setting key and setting value are reuiqred!');
     const plugin = yield PluginMapModel.findOne({ receptacle: this._receptacle, group: this._group, 'plugins.name': name });
     assert(plugin, `Plugin ${name} is not plugged!`);
     const pluginRegistry = new PluginRegistry(name);

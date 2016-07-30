@@ -65,6 +65,16 @@ router.put('/map/plugins/:group/:receptacle/plugins/:plugin/settings/:key', func
   this.body = yield pluginMap.updatePluginSettingValue(plugin, key, value);
 });
 
+//Update a component setting
+router.put('/map/components/:group/:workflow/:receptacle/settings/:key', function* () {
+  const {receptacle, group, workflow, key} = this.params;
+  const {value} = this.req.body;
+  const componentMap = new ComponentMap(group, workflow, receptacle);
+  const componentMapInfo = yield componentMap.info();
+  assert(componentMapInfo, 'Component map is not exists!');
+  this.body = yield componentMap.updateComponentSettingValue(key, value);
+});
+
 //Get all the registed components;
 router.get('/registry/components', function* () {
   this.body = yield ComponentRegistry.list();

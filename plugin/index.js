@@ -19,7 +19,6 @@ class Plugin {
   }
 
   touch(...params) {
-    if(!this.settings.title) console.log('Setting [title] is not defined');
     console.log(`[${this.settings.title}] You have triggered plugin [${Plugin.name}] with params [${params}]`);
   }
 }

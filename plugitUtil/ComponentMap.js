@@ -41,13 +41,16 @@ class ComponentMap {
   }
 
   * updateComponentName(name) {
-    yield ComponentMapModel.findOneAndUpdate({ receptacle: this._receptacle, workflow: this._workflow, group: this._group }, { $set: { name } });
+    const info = yield this.info();
+    assert(name != info.name, `This receptacle [${this.group}/${this.workflow}/${this.receptacle}] is relating to component [${name}] now!`);
+    const settingsAndRef = yield this._generateComponentSettingAndRef(info.type, name);
+    yield ComponentMapModel.findOneAndUpdate({ receptacle: this._receptacle, workflow: this._workflow, group: this._group }, { $set: Object.assign({ name }, settingsAndRef) });
   }
 
-  * _generateComponentSettingAndRef(type) {
-    const componentRegistry = new ComponentRegistry(type, 'Base');
+  * _generateComponentSettingAndRef(type, name = 'Base') {
+    const componentRegistry = new ComponentRegistry(type, name);
     const componentRegistryInfo = yield componentRegistry.info();
-    assert(componentRegistryInfo, `Component [${this.group}/${this.workflow}/${this.receptacle}] is not registed`);
+    assert(componentRegistryInfo, `Component [${type}/${name}] is not registed`);
     let settings = {};
     componentRegistryInfo.settings.forEach(setting => {
       settings[setting.key] = setting.dft;
@@ -56,10 +59,11 @@ class ComponentMap {
   }
 
   * updateComponentSettingValue(key, value) {
+    assert(key && value, 'Setting key and value are required!');
     const info = yield this.info();
     const componentRegistry = new ComponentRegistry(info.type, info.name);
     const componentRegistryInfo = yield componentRegistry.info();
-    assert(componentRegistryInfo, `Component [${this.group}/${this.workflow}/${this.receptacle}] is not registed`);
+    assert(componentRegistryInfo, `Component [${info.type}/${info.name}] is not registed`);
     let regExp;
     componentRegistryInfo.settings.forEach(setting => {
       if (setting.key == key) {
@@ -67,7 +71,7 @@ class ComponentMap {
         return false;
       }
     });
-    assert(regExp, `Setting [${key}] of component [${this._group}/${this.workflow}/${this._receptacle}] is not registed!`);
+    assert(regExp, `Setting [${key}] of component [${info.type}/${info.name}] is not registed!`);
     assert(regExp.test(value), `Setting value ${value} do not match RegExp ${regExp}`);
     const data = {};
     data[`settings.${key}`] = value;

@@ -2,12 +2,13 @@
 
 const Component = require('../');
 const AccountModel = require('../../model/AccountModel');
+const assert = require('assert');
 
 class Base extends Component {
 
   * updateName(name, transaction) {
     yield this._checkSafe();
-    console.log(this.settings);
+    assert(name, 'name is requried!');
     yield this._model.findByIdAndUpdate(this._id, { $set: { name } });
   }
 
@@ -23,5 +24,3 @@ module.exports = Base;
 const componentRegistry = global.ComponentRegistry.regist(Base, { description: 'The base component that all account components extends' });
 //Regist the operations
 componentRegistry.registOperation({ name: 'updateName', args: 'name:String', safe: true, description: 'Update the name' });
-//Regist the settings of component;
-componentRegistry.registSetting({key: 'title', dft: 'Default title', description: 'Test setting for Account/Base component, any string is acceptable'});

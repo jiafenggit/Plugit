@@ -20,6 +20,9 @@
       "externalConsole": false,
       "sourceMaps": false,
       "outDir": null
+    },
+    {
+      "name": "启动HMR开发服务器"
     }
   ]
 }

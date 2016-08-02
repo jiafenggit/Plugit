@@ -1,90 +1,59 @@
 'use strict';
 
-const PluginRegistryModel = require('../plugitModels/PluginRegistryModel');
-const assert = require('assert');
-const path = require('path');
-const co = require('co');
+const PlugitError = require('../utils/PlugitError');
+const mongoose = require('mongoose');
 
 class PluginRegistry {
-  constructor(name) {
+  constructor(name, model = {}) {
+    if (typeof name !== 'string' || !name) throw new PlugitError('name should be a string');
+    if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model should be a mongoose model');
     this._name = name;
+    this._model = model;
+    this._registedSettings = [];
   }
 
   get name() {
     return this._name;
   }
 
+  get model() {
+    return this._model;
+  }
+
+  get registedSettings() {
+    return this._registedSettings;
+  }
+
   * info() {
-    return yield PluginRegistryModel.findOne({ name: this._name });
+    return yield this.model.findOne({ name: this.name });
   }
 
-  * _create({description, tags} = {}) {
+  * create({description, tags} = {}) {
     if (yield this.info()) return;
-    yield PluginRegistryModel({ name: this._name, description, tags }).save();
+    yield this.model({ name: this.name, description, tags }).save();
   }
 
-  * _updatePluginDescriptionAndTags({description, tags} = {}) {
-    yield PluginRegistryModel.findOneAndUpdate({ name: this._name }, { $set: { description, tags } });
+  * updateDescription(description) {
+    yield this.model.findOneAndUpdate({ name: this.name }, { $set: { description } });
   }
 
-  registSetting({key, dft, regExp = '^[\\s\\S]*$', description} = {}) {
-    assert(key && dft, `Setting [${key}] of plugin [${this.name}] key and default value are required!`);
-    const id = [this._name, key].join('/');
-    PluginRegistry.registedSettings = PluginRegistry.registedSettings || [];
-    assert(!PluginRegistry.registedSettings.includes(id), `Setting [${key}] in plugin [${this._name}] has registed`);
-    PluginRegistry.registedSettings.push(id);
-    co(function* () {
-      try {
-        yield this._create();
-      } catch (e) {
-        //do nothing.
-      }
-      const setting = yield PluginRegistryModel.findOne({ name: this._name, 'settings.key': key });
-      if (!setting) {
-        yield PluginRegistryModel.findOneAndUpdate({ name: this._name }, { $push: { settings: { key, dft, regExp, description } } });
-      } else {
-        yield PluginRegistryModel.findOneAndUpdate({ name: this._name, 'settings.key': key }, { $set: { 'settings.$': { key, dft, regExp, description } } });
-      }
-      console.log(`Setting [${key}] of Plugin [${this._name}] regist success!`);
-    }.bind(this)).catch(e => console.error(`Setting [${key}] of Plugin [${this._name}] regist error! Error message: ${e.message}`));
+  * updateTags(tags) {
+    yield this.model.findOneAndUpdate({ name: this.name }, { $set: { tags } });
+  }
+
+  * registSetting({key, dft, regExp = '^[\\s\\S]*$', description} = {}, plugit) {
+    if (typeof key !== 'string' || !key) throw new PlugitError(`Setting [${key}] of plugin [${this.name}] key should be a string`);
+    if (this.registedSettings.includes(key)) throw new PlugitError(`Setting [${name}] in plugin [${this.name}] has registed`);
+    this.registedSettings.push(key);
+    const setting = yield this.model.findOne({ name: this.name, 'settings.key': key });
+    if (!setting) {
+      yield this.model.findOneAndUpdate({ name: this.name }, { $push: { settings: { key, dft, regExp, description } } });
+    } else {
+      yield this.model.findOneAndUpdate({ name: this.name, 'settings.key': key }, { $set: { 'settings.$': { key, dft, regExp, description } } });
+    }
+    plugit.log(`Setting [${key}] of Plugin [${this.name}] regist success!`);
   }
 
 }
 
-PluginRegistry.registedSettings = [];
-
-PluginRegistry.list = function* (query) {
-  return yield PluginRegistryModel.find(query);
-};
-
-PluginRegistry.clean = function* () {
-  global.plugins = [];
-  return yield PluginRegistryModel.remove();
-};
-
-PluginRegistry.regist = (Plugin, {description, tags = []} = {}) => {
-  assert(typeof Plugin === 'function', 'Plugin is required and it must be a function!');
-  assert(Array.isArray(tags), 'Plugin tags is either null or an array');
-  global.plugins = global.plugins || {};
-  const name = Plugin.name;
-  assert(!global.plugins[name], `Plugin ${name} has registed in global!`);
-  //Globally regist the plugin;
-  global.plugins[name] = Plugin;
-  const pluginRegistry = new PluginRegistry(name);
-  co(function* () {
-    try {
-      yield pluginRegistry._create({ description, tags });
-    } catch (e) {
-      // do nothing.
-    }
-    const pluginRegistryInfo = yield pluginRegistry.info();
-    if (pluginRegistryInfo.description !== description || pluginRegistryInfo.tags.join('|') !== tags.join('|')) {
-      yield pluginRegistry._updatePluginDescriptionAndTags({ description, tags });
-    }
-    console.log(`Regist plugin [${name}] success!`);
-  }).catch(e => console.error(`Regist plugin [${name}] error! Error message: ${e.message}`));
-  return pluginRegistry;
-};
-
 module.exports = PluginRegistry;
-global.PluginRegistry = PluginRegistry;

@@ -12,11 +12,13 @@ mongoose.plugin(mongooseRollbackable);
 mongoose.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' });
 
 class Database {
-  constructor(options = {}) {
-    if (!options.host) throw new PlugitError('Database host is required!');
-    if (!options.port) throw new PlugitError('Database port is required!');
-    if (!options.name) throw new PlugitError('Database name is required!');
-    this._options = options;
+  constructor({options = {}, log, error} = {}) {
+    if (!options.database.host) throw new PlugitError('Database host is required!');
+    if (!options.database.port) throw new PlugitError('Database port is required!');
+    if (!options.database.name) throw new PlugitError('Database name is required!');
+    this._options = options.database;
+    this._log = log;
+    this._error = error;
   }
 
   get connection() {
@@ -25,6 +27,14 @@ class Database {
 
   get options() {
     return this._options;
+  }
+
+  get log() {
+    return this._log;
+  }
+
+  get error() {
+    return this._error;
   }
 
   registModels() {
@@ -37,7 +47,7 @@ class Database {
       });
       conn.on('close', this._handleClose.bind(this));
       conn.on('connected', _ => {
-        console.log('Database has connected!');
+        this.log('Database has connected!');
         resolve(this._registModels());
       });
 
@@ -48,7 +58,7 @@ class Database {
   }
 
   _handleClose() {
-    console.log('Database closed!');
+    this.error('Database closed!');
   }
 
   _connect() {
@@ -65,6 +75,7 @@ class Database {
       if (!(schema instanceof mongoose.Schema)) throw new PlugitError(`Schema ${key} is not a instance of mongoose Schema`);
       const model = this.connection.model(key.toUnderlineCase(), schema);
       this._models[key] = model;
+      this.log(`Regist model [${key}] success!`);
     });
     return this._models;
   }

@@ -4,13 +4,25 @@ const PlugitError = require('../utils/PlugitError');
 const ObjectId = require('mongodb').ObjectId;
 //Super component only for extends;
 class Base {
-  constructor(settings) {
-    if (!settings) throw new PlugitError('Component need a settings object, if you are overriding the constructor of the Base component class, please pass through a settings.');
+  constructor(settings = {}) {
     this._settings = settings;
   }
 
   get model() {
-    throw new PlugitError('You should override model getter of you custom component!');
+    if (!this._model) throw new PlugitError('You should set model first');
+    return this._model;
+  }
+
+  set model(model) {
+    this._model = model;
+  }
+
+  get modelName() {
+    throw new PlugitError('You should override modelName getter of you custom component!');
+  }
+
+  get name() {
+    return [this.constructor.type, this.constructor.name].join('/');
   }
 
   get settings() {
@@ -26,7 +38,8 @@ class Base {
   }
 
   get id() {
-    return this._id || new ObjectId();
+    this._id = this._id || new ObjectId();
+    return this._id;
   }
 
   * info() {
@@ -46,7 +59,7 @@ class Base {
 
   * unbindTransaction(transaction) {
     const info = yield this.info();
-    if (info && info.transaction && info.transaction !== transaction) throw new PlugitError('The transaction do not have access to the instance');
+    if (info && info.transaction && info.transaction != transaction) throw new PlugitError('The transaction do not have access to the instance');
     yield this.model.findByIdAndUpdate(this.id, { $unset: { transaction: "" } });
   }
 
@@ -68,7 +81,16 @@ class Base {
 
   * _checkSafe() {
     const info = yield this.info();
-    if (!this.transaction || (info && info.transaction !== this.transaction)) throw new PlugitError('Maybe you are doing an unsafe action! Do not call an write action outside the binding transaction!');
+    if (!this.transaction || (info && info.transaction != this.transaction)) throw new PlugitError('Maybe you are doing an unsafe action! Do not call an write action outside the binding transaction!');
+  }
+
+  * rollback(prev) {
+    yield this._checkSafe();
+    if (prev && typeof prev === 'object') {
+      yield this.model.findByIdAndUpdate(this.id, prev, { upsert: true, overwrite: true });
+    } else {
+      yield this.remove();
+    }
   }
 
 }
@@ -103,7 +125,7 @@ module.exports.componentRegistations = [{
   operations: [
     {
       name: 'list',
-      args: 'query:Object',
+      args: 'query:Object|null',
       description: 'Get the entity list related to the component instance'
     },
     {
@@ -138,6 +160,12 @@ module.exports.componentRegistations = [{
       args: 'tranaction:ObjectId',
       description: 'Unbind the transaction'
     },
+    {
+      name: 'rollback',
+      args: 'prev:Object|null',
+      saft: true,
+      description: 'The rollback method for component, It can be override by custom component for custom rollback process.'
+    }
   ],
   settings: [
     {

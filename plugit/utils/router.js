@@ -8,7 +8,7 @@ const rbac = require('koa-rbac');
 
 //Get all the map between components and receptacles;
 router.get('/map/components', function* () {
-  this.body = yield this.plugit.componentReceptacleDesignTable.list();
+  this.body = yield this.plugit.componentMapDesignTable.list();
 });
 
 //Update the component name of receptacle by searching in ComponentRegistry;
@@ -19,25 +19,25 @@ router.put('/map/components/:group/:workflow/:receptacle/name', function* () {
   if (!componentMap) throw new PlugitError('Component map is not exists!');
   const componentMapInfo = yield componentMap.info();
   const componentRegistry = this.plugit.componentRegistries[[componentMapInfo.type, name].join('/')];
-  if (!(yield componentRegistry.info())) throw new PlugitError('Component has not registed!');
+  if (!componentRegistry) throw new PlugitError('Component has not registed!');
   yield componentMap.updateComponentName(name);
   this.body = yield componentMap.info();
 });
 
 //Get all the map between plugins and receptacles;
 router.get('/map/plugins', function* () {
-  this.body = yield PluginMap.list();
+  this.body = yield this.plugit.pluginMapDesignTable.list();
 });
 
 //Push a plugin to the receptacle by searching in PluginRegistry;
 router.put('/map/plugins/:group/:receptacle/plugins', function* () {
   const {plugin} = this.req.body;
   const {receptacle, group} = this.params;
-  const pluginMap = new PluginMap(group, receptacle);
-  const pluginMapInfo = yield pluginMap.info();
-  assert(pluginMapInfo, 'Plugin map is not exists!');
-  const pluginRegistry = new PluginRegistry(plugin);
-  assert(yield pluginRegistry.info(), 'Plugin has not registed!');
+  const id = [group, receptacle].join('/');
+  const pluginMap = this.plugit.pluginMaps[id];
+  if (!pluginMap) throw new PlugitError('Plugin map is not exists!');
+  const pluginRegistry = this.plugit.pluginRegistries[plugin];
+  if (!pluginRegistry) throw new PlugitError('Plugin has not registed!');
   yield pluginMap.pushPlugin(plugin);
   this.body = yield pluginMap.info();
 });
@@ -45,9 +45,9 @@ router.put('/map/plugins/:group/:receptacle/plugins', function* () {
 //Pull a plugin from the receptacle;
 router.delete('/map/plugins/:group/:receptacle/plugins/:plugin', function* () {
   const {receptacle, group, plugin} = this.params;
-  const pluginMap = new PluginMap(group, receptacle);
-  const pluginMapInfo = yield pluginMap.info();
-  assert(pluginMapInfo, 'Plugin map is not exists!');
+  const id = [group, receptacle].join('/');
+  const pluginMap = this.plugit.pluginMaps[id];
+  if (!pluginMap) throw new PlugitError('Plugin map is not exists!');
   yield pluginMap.pullPlugin(plugin);
   this.body = yield pluginMap.info();
 });
@@ -56,39 +56,46 @@ router.delete('/map/plugins/:group/:receptacle/plugins/:plugin', function* () {
 router.put('/map/plugins/:group/:receptacle/plugins/:plugin/settings/:key', function* () {
   const {receptacle, group, plugin, key} = this.params;
   const {value} = this.req.body;
-  const pluginMap = new PluginMap(group, receptacle);
-  const pluginMapInfo = yield pluginMap.info();
-  assert(pluginMapInfo, 'Plugin map is not exists!');
-  this.body = yield pluginMap.updatePluginSettingValue(plugin, key, value);
+  const pluginMap = this.plugit.pluginMaps[[group, receptacle].join('/')];
+  if (!pluginMap) throw new PlugitError('Plugin map is not exists!');
+  yield pluginMap.updatePluginSettingValue(plugin, key, value);
+  this.body = yield pluginMap.info();
 });
 
 //Update a component setting
 router.put('/map/components/:group/:workflow/:receptacle/settings/:key', function* () {
   const {receptacle, group, workflow, key} = this.params;
   const {value} = this.req.body;
-  const componentMap = new ComponentMap(group, workflow, receptacle);
-  const componentMapInfo = yield componentMap.info();
-  assert(componentMapInfo, 'Component map is not exists!');
-  this.body = yield componentMap.updateComponentSettingValue(key, value);
+  const componentMap = this.plugit.componentMaps[[group, workflow, receptacle].join('/')];
+  if (!componentMap) throw new PlugitError('Component map is not exists!');
+  yield componentMap.updateComponentSettingValue(key, value);
+  this.body = yield componentMap.info();
 });
 
 //Get all the registed components;
 router.get('/registry/components', function* () {
-  this.body = yield ComponentRegistry.list();
+  this.body = yield this.plugit.componentRegistTable.list();
 });
 
 //Get all the registed plugins;
 router.get('/registry/plugins', function* () {
-  this.body = yield PluginRegistry.list();
+  this.body = yield this.plugit.pluginRegistTable.list();
+});
+
+//Reload all plugins, components and receptacles;
+router.put('/reload', function *() {
+  yield this.plugit.reloadModules();
+  this.body = null;
 });
 
 //re regist all the plugins, components and receptacles;
-router.put('/registry', rbac.allow(['super admin api']), function* () {
-  yield ComponentMap.clean();
-  yield ComponentRegistry.clean();
-  yield PluginMap.clean();
-  yield PluginRegistry.clean();
-  yield hotLoad.reload();
+router.put('/reregist', function* () {
+  const {componentRegistTable, componentMapDesignTable, pluginRegistTable, pluginMapDesignTable} = this.plugit;
+  yield componentRegistTable.clean();
+  yield componentMapDesignTable.clean();
+  yield pluginRegistTable.clean();
+  yield pluginMapDesignTable.clean();
+  yield this.plugit.reloadModules();
   this.body = null;
 });
 

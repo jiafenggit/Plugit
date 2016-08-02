@@ -1,11 +1,14 @@
 'use strict';
 
-const Component = require('../../../plugit').Component;
-const app = require('../../../app');
+const Component = require('../../../plugit/base/Component');
 
 class Base extends Component {
 
-  * updateName(name, transaction) {
+  get modelName() {
+    return 'Account';
+  }
+
+  * updateName(name) {
     yield this._checkSafe();
     if (!name) throw new Error('name is required!'); 
     yield this.model.findByIdAndUpdate(this.id, { $set: { name } });

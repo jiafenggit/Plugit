@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 const PlugitError = require('../utils/PlugitError.js');
 const ComponentMap = require('./ComponentMap');
 
-class ComponentReceptacleDesignTable {
-  constructor(model) {
+class ComponentMapDesignTable {
+  constructor(model = {}) {
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model should be a mongoose model');
     this._model = model;
     this._componentMaps = {};
@@ -27,21 +27,24 @@ class ComponentReceptacleDesignTable {
     return yield this.model.remove();
   }
 
-  * design(blueprints = [], componentRegistries = {}) {
-    for (let {group, workflow, receptacle, type, description} of blueprints) {
+  * design(componentBlueprints = [], plugit) {
+    const {componentRegistries} = plugit;
+    for (let {group, workflow, receptacle, type, description} of componentBlueprints) {
       const id = [group, workflow, receptacle].join('/');
       if (this.componentMaps[id]) throw new PlugitError(`Component receptacle [${id}] has designed`);
-      const componentMap = new ComponentMap(group, workflow, receptacle, this.model);
+      const componentMap = new ComponentMap(group, workflow, receptacle, this.model, componentRegistries);
       this.componentMaps[id] = componentMap;
       const componentMapInfo = yield componentMap.info();
       if (!componentMapInfo) {
-        yield componentMap.create({ type, description }, componentRegistries);
-      } else if (componentMapInfo.type !== type || componentMapInfo.description !== description) {
-        yield componentMap.updateTypeAndDescription({ type, description }, componentRegistries);
+        yield componentMap.create({ type, description });
+      } else if (componentMapInfo.type !== type) {
+        yield componentMap.updateType(type);
+      } else if (componentMapInfo.description !== description) {
+        yield componentMap.updateDescription(description);
       }
-      console.log(`Designed component receptacle [${id}] success!`);
+      plugit.log(`Designed component receptacle [${id}] success!`);
     }
   }
 }
 
-module.exports = ComponentReceptacleDesignTable;
+module.exports = ComponentMapDesignTable;

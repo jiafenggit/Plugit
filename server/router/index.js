@@ -2,12 +2,11 @@
 
 const router = require('koa-router')();
 const jwt = require('koa-jwt');
-const appConfig = require('../app.conf.js');
 
 router.post('/auth', function* () {
   let auth = this.req.body;
-  auth.exp = auth.exp || Math.round((Date.now() + appConfig.jwt.exp) / 1000);
-  this.body = {jwt: jwt.sign(auth, appConfig.jwt.secret)};
+  // auth.exp = auth.exp || Math.round((Date.now() + appConfig.jwt.exp) / 1000);
+  // this.body = {jwt: jwt.sign(auth, appConfig.jwt.secret)};
 });
 
 router.get('/auth', function* () {

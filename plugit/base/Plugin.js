@@ -8,7 +8,7 @@ class Plugin {
   constructor(settings = {}, props = {}) {
     this._props = props;
     this._settings = settings;
-  }  
+  }
 
   get settings() {
     return this._settings;
@@ -24,3 +24,16 @@ class Plugin {
 }
 
 module.exports = Plugin;
+
+module.exports.pluginRegistations = [
+  {
+    Plugin,
+    tags: ['base', 'super'],
+    description: 'The base plugin that all plugins extends',
+    settings: [{
+      key: 'title',
+      dft: 'Default title',
+      description: 'Default setting test'
+    }]
+  }
+];

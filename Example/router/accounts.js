@@ -4,7 +4,7 @@ const rbac = require('koa-rbac');
 const router = require('koa-router')();
 const AccountWorkflow = require('../workflows/Account');
 
-const accountWorkflow = new AccountWorkflow('Account');
+const accountWorkflow = new AccountWorkflow();
 
 router.post('/', ...accountWorkflow.genMiddleware(accountWorkflow.create));
 

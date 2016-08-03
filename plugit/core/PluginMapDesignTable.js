@@ -40,7 +40,7 @@ class PluginMapDesignTable {
       } else if (description !== pluginMapInfo.description) {
         yield pluginMap.updateDescription({ description });
       }
-      plugit.log(`Designed plugin receptacle [${id}] success!`);
+      plugit.log(`Plugin receptacle [${id}] designed success!`);
     }
   }
 }

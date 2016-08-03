@@ -65,7 +65,7 @@ class ComponentRegistry {
     } else {
       yield this.model.findOneAndUpdate({ type: this.type, name: this.name, 'operations.name': name }, { $set: { 'operations.$': { name, args, safe, description } } });
     }
-    plugit.log(`Operation [${name}] of component [${this.type}/${this.name}] regist success!`);
+    plugit.log(`Component [${this.type}/${this.name}] operation [${name}] registed success!`);
   }
 
   * registAttribute({name, type, description} = {}, plugit) {
@@ -79,7 +79,7 @@ class ComponentRegistry {
     } else {
       yield this.model.findOneAndUpdate({ type: this.type, name: this.name, 'attributes.name': name }, { $set: { 'attributes.$': { name, type, description } } });
     }
-    plugit.log(`Attribute [${name}] of component [${this.type}/${this.name}] regist success!`);
+    plugit.log(`Component [${this.type}/${this.name}] attribute [${name}] registed success!`);
   }
 
   * registSetting({key, dft, regExp = '^[\\s\\S]*$', description} = {}, plugit) {
@@ -92,7 +92,7 @@ class ComponentRegistry {
     } else {
       yield this.model.findOneAndUpdate({ type: this.type, name: this.name, 'settings.key': key }, { $set: { 'settings.$': { key, dft, regExp, description } } });
     }
-    plugit.log(`Setting [${key}] of component [${this.type}/${this.name}] regist success!`);
+    plugit.log(`Component [${this.type}/${this.name}] setting [${key}] registed success!`);
   }
 
 }

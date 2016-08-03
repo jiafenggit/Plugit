@@ -64,7 +64,7 @@ class ComponentRegistTable {
       for (let setting of settings || []) {
         yield componentRegistry.registSetting(setting, plugit);
       }
-      plugit.log(`Regist component [${type}/${name}] success!`);
+      plugit.log(`Component [${type}/${name}] registed success!`);
     }
   }
 }

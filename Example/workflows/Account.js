@@ -1,6 +1,6 @@
 'use strict';
 
-const {Workflow} = require('../../plugit');
+const {Workflow} = require('../../');
 
 class Account extends Workflow {
   get create() {

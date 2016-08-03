@@ -113,6 +113,10 @@ module.exports.componentRegistations = [{
       type: 'Model',
       description: 'The model related to the component instance'
     }, {
+      name: 'modelName',
+      type: 'String',
+      description: 'The name of model related to the component instance'
+    }, {
       name: 'settings',
       type: 'Object',
       description: 'The settings related to the component instance'

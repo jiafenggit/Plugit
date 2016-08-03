@@ -1,9 +1,6 @@
 'use strict';
 
-//Require extension util to extend internal type prototype methods;
-require('./utils/extension');
-
-const PlugitError = require('./utils/PlugitError.js');
+const PlugitError = require('../utils/PlugitError.js');
 
 //Koa is the core http server supporter;
 const koa = require('koa');
@@ -15,20 +12,20 @@ const jwt = require('koa-jwt');
 //User koa-rbac to support role management;
 const rbac = require('koa-rbac');
 //Override the internal RBAC Provider to adapt jwt authorization;
-const RBACProvider = require('./rbac/RBACProvider');
+const RBACProvider = require('../rbac/RBACProvider');
 
 const path = require('path');
 const co = require('co');
 const merge = require('merge');
 
-const hotLoader = require('./utils/hotLoader');
-const ComponentRegistTable = require('./core/ComponentRegistTable');
-const ComponentMapDesignTable = require('./core/ComponentMapDesignTable');
-const PluginRegistTable = require('./core/PluginRegistTable');
-const PluginMapDesignTable = require('./core/PluginMapDesignTable');
+const hotLoader = require('../utils/hotLoader');
+const ComponentRegistTable = require('../core/ComponentRegistTable');
+const ComponentMapDesignTable = require('../core/ComponentMapDesignTable');
+const PluginRegistTable = require('../core/PluginRegistTable');
+const PluginMapDesignTable = require('../core/PluginMapDesignTable');
 
 //NotificationCenter for plugin trigger.
-const NotificationCenter = require('./core/NotificationCenter');
+const NotificationCenter = require('../core/NotificationCenter');
 
 
 global.plugitInstances = {};
@@ -36,8 +33,8 @@ global.plugitInstances = {};
 //Export a class for user to start a Plugit project;
 class Plugit {
   constructor(options = {}) {
-    delete require.cache[require.resolve('./default.conf.js')];
-    const defaultConfig = require('./default.conf.js');
+    delete require.cache[require.resolve('../default.conf.js')];
+    const defaultConfig = require('../default.conf.js');
     this._options = merge.recursive(defaultConfig, options);
     if (global.plugitInstances[this.options.name]) throw new PlugitError(`Plugit server name [${this.options.name}] has registed! Please use another name.`);
     global.plugitInstances[this.options.name] = this;
@@ -50,17 +47,17 @@ class Plugit {
     this._pluginMaps = {};
     this._models = {};
     this._internalHotLoadPaths = [
-      path.resolve(__dirname, 'base/Component.js'),
-      path.resolve(__dirname, 'base/Plugin.js'),
-      path.resolve(__dirname, 'base/Workflow.js'),
-      path.resolve(__dirname, 'middleware')
+      path.resolve(__dirname, '../base/Component.js'),
+      path.resolve(__dirname, '../base/Plugin.js'),
+      path.resolve(__dirname, '../base/Workflow.js'),
+      path.resolve(__dirname, '../middleware')
     ];
     this._internalSchemas = {
-      ComponentMap: require('./schemas/ComponentMap'),
-      ComponentRegistry: require('./schemas/ComponentRegistry'),
-      PluginMap: require('./schemas/PluginMap'),
-      PluginRegistry: require('./schemas/PluginRegistry'),
-      Transaction: require('./schemas/Transaction')
+      ComponentMap: require('../schemas/ComponentMap'),
+      ComponentRegistry: require('../schemas/ComponentRegistry'),
+      PluginMap: require('../schemas/PluginMap'),
+      PluginRegistry: require('../schemas/PluginRegistry'),
+      Transaction: require('../schemas/Transaction')
     };
   }
 
@@ -116,27 +113,28 @@ class Plugit {
     return this._notificationCenter;
   }
 
-  * _attachDatabase() {
+  * _attachDatabases() {
     const Database = require('./Database');
-    let databaseOptions = this.options.database;
+    let databaseOptions = this.options.databases;
+    if (!databaseOptions || !databaseOptions.core) throw new PlugitError('Require a core database for internal data saving');
     const internalSchemas = this._internalSchemas;
     Object.keys(internalSchemas).forEach(key => {
-      if (databaseOptions.schemas[key] || databaseOptions.schemas[key.toUnderlineCase()]) throw new PlugitError(`Schema ${key} is internal schema!`);
-      databaseOptions.schemas[key] = internalSchemas[key];
+      if (databaseOptions.core.schemas[key] || databaseOptions.core.schemas[key.toUnderlineCase()]) throw new PlugitError(`Schema ${key} is internal schema!`);
+      databaseOptions.core.schemas[key] = internalSchemas[key];
     });
-    this._models = yield new Database(this).registModels();
+    this._models = yield new Database(this).start();
   }
 
   * _registAndDesign(modules) {
     const models = this.models;
     // Create a componentRegistTalbe for components regist;
-    this._componentRegistTable = new ComponentRegistTable(models.ComponentRegistry);
+    this._componentRegistTable = new ComponentRegistTable(models['core/ComponentRegistry']);
     // Create a componentMapDesignTable for component receptacles design;
-    this._componentMapDesignTable = new ComponentMapDesignTable(models.ComponentMap);
+    this._componentMapDesignTable = new ComponentMapDesignTable(models['core/ComponentMap']);
     // Create a pluginRegistTable for plugins regist;
-    this._pluginRegistTable = new PluginRegistTable(models.PluginRegistry);
+    this._pluginRegistTable = new PluginRegistTable(models['core/PluginRegistry']);
     // Create a pluginMapDesignTable for plugin receptacles design;
-    this._pluginMapDesignTable = new PluginMapDesignTable(models.PluginMap);
+    this._pluginMapDesignTable = new PluginMapDesignTable(models['core/PluginMap']);
 
     let finalComponentRegistations = [];
     let finalComponentBlueprints = [];
@@ -209,7 +207,7 @@ class Plugit {
     //Start a koa app, and automatic generate registry & design;
     return co(function* () {
       // Connect to database and regist models;
-      yield this._attachDatabase();
+      yield this._attachDatabases();
 
       // pre load all modules;      
       yield this._preloadModules();
@@ -221,19 +219,18 @@ class Plugit {
       app.keys = this.options.keys;
 
       // A simple http response error handler; Maybe it can be custom decided;   TODO:  
-      const errorHandler = require('./middleware/errorHandler');
+      const errorHandler = require('../middleware/errorHandler');
       app.use(errorHandler);
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
-      const ignoreAssets = require('./middleware/ignoreAssets');
+      const ignoreAssets = require('../middleware/ignoreAssets');
       // A simple logger middleware use Plugit Plugin;
-      const logger = require('./middleware/logger');
+      const logger = require('../middleware/logger');
       app.use(ignoreAssets(logger()));
 
       // A mongoose transaction module for avoiding unexpected data write operations; all business routes in Plugit must preinject a transaction middleware. 
-      const Transaction = require('./core/Transaction');
+      const Transaction = require('../core/Transaction');
 
       // TODO: serve backend management or serve business pages      
-      app.use(serve(path.join(__dirname, 'public')));
       app.use(jwt({ secret: this.options.jwt.secret, passthrough: true }));
       app.use(bodyParser(this.options.bodyParser));
       app.use(rbac.middleware({
@@ -253,8 +250,25 @@ class Plugit {
         yield next;
       });
 
+      //Internal serve
+      app.use(function* (next) {
+        let {backendServePath} = this.plugit.options.app;
+        if (!/^\//.test(backendServePath)) backendServePath = `/${backendServePath}`;
+        if (!/\/$/.test(backendServePath)) backendServePath = `${backendServePath}/`;
+        const prefixReg = new RegExp(backendServePath);
+        if (prefixReg.test(this.path)) {
+          this.path = this.path.replace(prefixReg, '/');
+          yield serve(path.resolve(__dirname, '../public/build')).bind(this)(next);
+        } else yield next;
+      });
+
       //The backend management server api router;      
-      app.use(require('./utils/router'));
+      app.use(require('../utils/router'));
+
+      if (this.options.serve && typeof this.options.serve === 'object') {
+        app.use(serve(this.options.serve.root, this.options.serve.opts));
+      }
+
       //Inject a transaction for all business routes;
       //Try your actions and the transaction will rollback when your actions boom;
       app.use(Transaction.middleware.inject);
@@ -296,11 +310,3 @@ class Plugit {
 
 
 module.exports = Plugit;
-
-module.exports.middleware = {
-  attachComponent: require('./middleware/attachComponent')
-};
-
-module.exports.Component = require('./base/Component');
-module.exports.Plugin = require('./base/Plugin');
-module.exports.Workflow = require('./base/Workflow');

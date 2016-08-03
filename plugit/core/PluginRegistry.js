@@ -51,7 +51,7 @@ class PluginRegistry {
     } else {
       yield this.model.findOneAndUpdate({ name: this.name, 'settings.key': key }, { $set: { 'settings.$': { key, dft, regExp, description } } });
     }
-    plugit.log(`Setting [${key}] of Plugin [${this.name}] regist success!`);
+    plugit.log(`Plugin [${this.name}] setting [${key}] registed success!`);
   }
 
 }

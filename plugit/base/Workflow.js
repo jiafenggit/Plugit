@@ -6,11 +6,6 @@ const attachComponent = require('../middleware/attachComponent');
 //Super workflow for extends;
 class Workflow {
 
-  constructor(group) {
-    if (typeof group !== 'string' && !group) throw new PlugitError('Group must be a exists string');
-    this._group = group;
-  }
-
   genMiddleware(works) {
     const injectRequestParams = function* (next) {
       this.paramsStream = {};

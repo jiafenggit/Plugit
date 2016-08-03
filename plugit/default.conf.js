@@ -9,22 +9,25 @@ module.exports = {
     keys: ['Plugit', 'I like it!'],
     errors: true,
     port: 3000,
+    backendServePath: 'plugit'
   },
-  database: {
-    host: 'localhost',
-    port: 27017,
-    name: 'plugit',
-    options: {
-      db: { native_parser: true },
-      server: {
-        poolSize: 100,
-        auto_reconnect: true,
-        socketOptions: { keepAlive: 1 }
+  databases: {
+    core: {
+      host: 'localhost',
+      port: 27017,
+      name: 'plugit',
+      options: {
+        db: { native_parser: true },
+        server: {
+          poolSize: 100,
+          auto_reconnect: true,
+          socketOptions: { keepAlive: 1 }
+        },
+        user: '',
+        pass: '',
       },
-      user: '',
-      pass: '',
-    },
-    schemas: {}
+      schemas: {}
+    }
   },
   jwt: {
     secret: 'plugit',

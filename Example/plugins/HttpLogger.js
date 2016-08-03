@@ -1,6 +1,6 @@
 'use strict';
 
-const Plugin = require('./');
+const {Plugin} = require('../../');
 
 class HttpLogger extends Plugin {
   touch() {
@@ -17,4 +17,10 @@ class HttpLogger extends Plugin {
 
 module.exports = HttpLogger;
 
-global.PluginRegistry.regist(HttpLogger, {description: 'Deal with http request and print/save some information', tags: ['logger']});
+module.exports.pluginRegistations = [
+  {
+    Plugin: HttpLogger,
+    tags: ['logger', 'http'],
+    description: 'The http logger triggered when a http request finished.'
+  }
+];

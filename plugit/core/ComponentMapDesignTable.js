@@ -37,12 +37,15 @@ class ComponentMapDesignTable {
       const componentMapInfo = yield componentMap.info();
       if (!componentMapInfo) {
         yield componentMap.create({ type, description });
-      } else if (componentMapInfo.type !== type) {
-        yield componentMap.updateType(type);
-      } else if (componentMapInfo.description !== description) {
-        yield componentMap.updateDescription(description);
+      } else {
+        if (componentMapInfo.type !== type) {
+          yield componentMap.updateType(type);
+        }
+        if (componentMapInfo.description !== description) {
+          yield componentMap.updateDescription(description);
+        }
       }
-      plugit.log(`Designed component receptacle [${id}] success!`);
+      plugit.log(`Component receptacle [${id}] designed success!`);
     }
   }
 }

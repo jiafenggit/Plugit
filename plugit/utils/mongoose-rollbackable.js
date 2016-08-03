@@ -5,6 +5,6 @@ const ObjectId = Schema.ObjectId;
 
 module.exports = (schema, options) => {
   schema.add({
-    transaction: { type: ObjectId, ref: 'transaction' }
+    transaction: { type: ObjectId }
   });
 };

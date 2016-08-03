@@ -51,7 +51,7 @@ class PluginRegistTable {
       for (let setting of settings || []) {
         yield pluginRegistry.registSetting(setting, plugit);
       }
-      plugit.log(`Regist plugin [${name}] success!`);
+      plugit.log(`Plugin [${name}] registed success!`);
     }
   }
 }

@@ -8,7 +8,7 @@ const PlugitError = require('../utils/PlugitError');
 class Transaction {
 
   constructor(models = {}, components) {
-    const model = models.Transaction;
+    const model = models['core/Transaction'];
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     if (typeof components !== 'object') throw new PlugitError('components should be an object');
     this._model = model;
@@ -171,6 +171,8 @@ class Transaction {
         throw new Error('Transaction should commit');
       case 'committed':
         throw new Error('Transaction has committed');
+      case 'cancelled':
+        throw new Error('Transaction has cancelled');
     }
   }
 
@@ -188,32 +190,20 @@ class Transaction {
     const {actions, state} = yield this.info();
     if (state !== 'committed') throw new PlugitError('Transaction state is not committed');
     for (let action of actions.reverse()) {
-      if (['applied', 'committed'].includes(action.state)) {
-        const component = this._attachComponent(action);
-        const componentInfo = yield component.info();
-        if (componentInfo && componentInfo.transaction !== this.id) throw new PlugitError('The transaction has no access to instance');
-        if (component.rollback) {
-          yield component.rollback(action.prev);
-        } else {
-          const model = component.model;
-          if (action.prev) {
-            yield model.findByIdAndUpdate(component.id, action.prev, { upsert: true, overwrite: true });
-          } else {
-            yield model.findByIdAndRemove(component.id);
-          }
-        }
+      const component = this._attachComponent(action);
+      const componentInfo = yield component.info();
+      if (componentInfo && componentInfo.transaction && componentInfo.transaction != this.id) throw new PlugitError('The transaction has no access to instance');
+      const model = component.model;
+      if (action.prev) {
+        yield model.findByIdAndUpdate(component.id, action.prev, { upsert: true, overwrite: true });
+      } else {
+        yield model.findByIdAndRemove(component.id);
       }
       yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'reverted' } });
     }
     yield this.model.findByIdAndUpdate(this.id, { $set: { state: 'reverted' } });
   }
 }
-
-Transaction.create = function* (id) {
-  const t = new Transaction(id);
-  yield t._create();
-  return t;
-};
 
 Transaction.middleware = {
   inject: function* (next) {

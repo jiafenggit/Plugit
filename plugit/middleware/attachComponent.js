@@ -26,8 +26,9 @@ module.exports = (componentMap) => {
     if (!Component) throw new PlugitError(`Component [${mapInfo.componentName}] is not defined!`);
     const component = new Component(mapInfo.settings || {});
     //Bind model to component by modelName set in Component;
-    if (['ComponentMap', 'ComponentRegistry', 'PluginMap', 'PluginRegistry', 'Transaction'].includes(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an iternal component, do not use it in custom component!`);
+    if (['core/ComponentMap', 'core/ComponentRegistry', 'core/PluginMap', 'core/PluginRegistry', 'core/Transaction'].includes(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an iternal model, do not use it in custom component!`);
     const model = this.plugit.models[component.modelName];
+    if (!model) throw new PlugitError(`Model [${component.modelName}] has not registed! Check your custom component modelName if it is right`);
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     component.model = model;
     this.component = component;

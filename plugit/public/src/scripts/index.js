@@ -1,14 +1,15 @@
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import CounterApp from './containers/CounterApp';
-import configureStore from './store/configureStore';
+import { Router, browserHistory } from 'react-router';
+import routes from './routes';
+import configureStore from './store/configureStore.js';
 
 const store = configureStore();
 
-render(
+ReactDOM.render(
   <Provider store={store}>
-    <CounterApp />
+    <Router history={browserHistory} routes={routes} />
   </Provider>,
   document.getElementById('app')
 );

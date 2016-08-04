@@ -12,7 +12,14 @@ const TEMPLATES_PATH = path.resolve(SRC_PATH, 'templates');
 let plugins = [
   new webpack.optimize.OccurenceOrderPlugin(),
   new webpack.optimize.CommonsChunkPlugin('vendors', 'assets/vendors.boundle.js'),
-  new webpack.NoErrorsPlugin()
+  new webpack.NoErrorsPlugin(),
+  new HtmlwebpackPlugin({
+    title: 'Hello World app',
+    template: path.resolve(TEMPLATES_PATH, 'index.ejs'),
+    filename: 'index.html',
+    chunks: ['app', 'vendors'],
+    inject: 'body'
+  })
 ];
 
 let babelrc = {
@@ -26,12 +33,10 @@ let babelrc = {
 if (process.env.NODE_ENV == 'development') {
   babelrc.presets.push("react-hmre");
 } else {
-  plugins.push(new HtmlwebpackPlugin({
-    title: 'Hello World app',
-    template: path.resolve(TEMPLATES_PATH, 'index.ejs'),
-    filename: 'index.html',
-    chunks: ['app', 'vendors'],
-    inject: 'body'
+  plugins.push(new CleanWebpackPlugin(['build'], {
+    root: PUBLIC_PATH,
+    verbose: true,
+    dry: false
   }));
 }
 
@@ -67,11 +72,6 @@ module.exports = {
   plugins,
   resolve: {
     extensions: ['', '.js', '.jsx']
-  },
-  proxy: {
-    '/': {
-      target: 'http://localhost:3000'
-    }
   },
   devServer: {
     contentBase: BUILD_PATH

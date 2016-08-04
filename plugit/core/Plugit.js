@@ -218,7 +218,7 @@ class Plugit {
       // Set cookie keys;  
       app.keys = this.options.keys;
 
-      // A simple http response error handler; Maybe it can be custom decided;   TODO:  
+      // A simple http response error handler; Maybe it can be custom decided;   TODO: Make error handler plugable; 
       const errorHandler = require('../middleware/errorHandler');
       app.use(errorHandler);
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
@@ -227,10 +227,13 @@ class Plugit {
       const logger = require('../middleware/logger');
       app.use(ignoreAssets(logger()));
 
-      // A mongoose transaction module for avoiding unexpected data write operations; all business routes in Plugit must preinject a transaction middleware. 
-      const Transaction = require('../core/Transaction');
+      if (process.env.NODE_ENV === 'development' || this.options.cors.enabled) {
+        //For cors request in development;
+        const cors = require('koa-cors');
+        //enable cors in development or enabled it in custom options;
+        app.use(cors(this.options.cors.options));
+      }
 
-      // TODO: serve backend management or serve business pages      
       app.use(jwt({ secret: this.options.jwt.secret, passthrough: true }));
       app.use(bodyParser(this.options.bodyParser));
       app.use(rbac.middleware({
@@ -269,6 +272,8 @@ class Plugit {
         app.use(serve(this.options.serve.root, this.options.serve.opts));
       }
 
+      // A mongoose transaction module for avoiding unexpected data write operations; all business routes in Plugit must preinject a transaction middleware. 
+      const Transaction = require('../core/Transaction');
       //Inject a transaction for all business routes;
       //Try your actions and the transaction will rollback when your actions boom;
       app.use(Transaction.middleware.inject);
@@ -288,7 +293,7 @@ class Plugit {
         //Server start listening;      
         app.listen(this.options.app.port, err => {
           if (err) return reject(err);
-          this.log(`Server [${this.options.name}] start! Listening on ${this.options.app.port}`);
+          this.log(`Server [${this.options.name}] start with env [${process.env.NODE_ENV}]! Listening on ${this.options.app.port}.`);
           console.timeEnd(this.options.name);
           resolve();
         });

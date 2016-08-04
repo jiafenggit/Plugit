@@ -1,11 +1,11 @@
 {
   "name": "plugit",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development webpack --progress && webpack-dev-server --hot --inline --progress",
-    "build": "NODE_ENV=production webpack --progress"
+    "dev": "NODE_ENV=development webpack && NODE_ENV=development  webpack-dev-server --hot --inline",
+    "build": "NODE_ENV=production webpack"
   },
   "repository": {
     "type": "git",
@@ -14,11 +14,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.13.1",
     "co": "^4.6.0",
-    "fetch": "^1.1.0",
     "immutable": "^3.8.1",
     "koa": "^1.2.1",
     "koa-body": "^1.4.0",
+    "koa-cors": "0.0.16",
     "koa-jwt": "^1.2.0",
     "koa-rbac": "^1.0.5",
     "koa-router": "^5.4.0",
@@ -31,8 +32,9 @@
     "react": "^15.3.0",
     "react-dom": "^15.3.0",
     "react-redux": "^4.4.5",
+    "react-router": "^2.6.1",
     "redux": "^3.5.2",
-    "redux-thunk": "^2.1.0"
+    "redux-promise": "^0.5.3"
   },
   "devDependencies": {
     "autoprefixer-loader": "^3.2.0",

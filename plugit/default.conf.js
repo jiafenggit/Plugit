@@ -1,8 +1,6 @@
 
 'use strict';
 
-const env = process.env.NODE_ENV;
-
 module.exports = {
   name: 'Default',
   app: {
@@ -42,5 +40,9 @@ module.exports = {
   },
   rbac: {
     rules: require('./rbac/rules')
+  },
+  cors: {
+    enabled: true,
+    options: {}
   }
 };

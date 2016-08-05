@@ -6,7 +6,7 @@ export const FETCH_COMPONENT_MAPS_SUCCESS = 'FETCH_COMPONENT_MAPS_SUCCESS';
 export const FETCH_COMPONENT_MAPS_FAILURE = 'FETCH_COMPONENT_MAPS_FAILURE';
 export const RESET_COMPONENT_MAPS = 'RESET_COMPONENT_MAPS';
 
-axios.defaults.baseURL = 'http://localhost:3000/plugit';
+axios.defaults.baseURL = '/plugit';
 axios.defaults.timeout = 10000;
 
 export function fetchComponentMaps() {

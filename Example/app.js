@@ -8,7 +8,7 @@ const name = 'Demo';
 new Plugit({
   name,
   app: {
-    backendServePath: 'plugit-backend'
+    port: 4000
   },
   databases: {
     business: {

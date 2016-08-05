@@ -55,7 +55,7 @@ module.exports = {
   },
   output: {
     path: BUILD_PATH,
-    publicPath: process.env.NODE_ENV === 'development' ? '/' : './',
+    publicPath: process.env.NODE_ENV === 'development' ? '/' : '/plugit-backend',
     filename: 'assets/[name].[hash].js'
   },
   module: {

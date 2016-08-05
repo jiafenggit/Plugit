@@ -6,8 +6,7 @@ module.exports = {
   app: {
     keys: ['Plugit', 'I like it!'],
     errors: true,
-    port: 3000,
-    backendServePath: 'plugit'
+    port: 3000
   },
   databases: {
     core: {

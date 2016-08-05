@@ -1,41 +1,47 @@
 'use strict';
 
-const {Workflow} = require('../../');
+const {Workflow, Worker} = require('../../');
 
 class Account extends Workflow {
   get create() {
     return [
-      'Account/create/Account',
-      function* (component, transaction, {name, password, username}) {
-        yield transaction.run({
-          component,
-          operation: 'create'
-        }, { name, password, username });
-        return yield component.info();
-      }
+      new Worker({
+        dispatcher: _ => ['Account/create']
+      }),
+      new Worker({
+        componentMap: 'Account/create/Account',
+        operation: 'create',
+        paramsMaper: payload => [payload.req],
+        packager: res => { return { res }; }
+      })
     ];
   }
-  
+
   get list() {
     return [
-      'Account/list/Account',
-      function* (component) {
-        return yield component.list();
-      }
+      new Worker({
+        dispatcher: _ => ['Account/list']
+      }),
+      new Worker({
+        componentMap: 'Account/list/Account',
+        operation: 'list',
+        packager: res => { return { res }; }
+      })
     ];
   }
 
   get updateName() {
     return [
-      'Account/updateName/Account',
-      function* (component, transaction, {id, name}) {
-        component.id = id;
-        yield transaction.run({
-          component,
-          operation: 'updateName'
-        }, name);
-        return yield component.info();
-      }
+      new Worker({
+        dispatcher: _ => ['Account/updateName']
+      }),
+      new Worker({
+        componentMap: 'Account/updateName/Account',
+        operation: 'updateName',
+        idBinder: payload => payload.req.id,
+        paramsMaper: payload => [payload.req.name],
+        packager: res => { return { res }; }
+      })
     ];
   }
 }

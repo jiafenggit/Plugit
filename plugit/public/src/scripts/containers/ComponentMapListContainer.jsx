@@ -1,3 +1,4 @@
+require('../../less/componentMap.less');
 import { connect } from 'react-redux';
 import { fetchComponentMaps, fetchComponentMapsSuccess, fetchComponentMapsFailure } from '../actions/componentMaps.js';
 

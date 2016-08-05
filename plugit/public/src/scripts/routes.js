@@ -5,7 +5,7 @@ import ComponentMapListPage from './pages/ComponentMapListPage';
 import AppPage from './pages/AppPage';
 
 export default (
-  <Route path="/" component={AppPage}>
+  <Route path={location.pathname} component={AppPage}>
     <IndexRoute component={ComponentMapListPage} />
   </Route>
 );

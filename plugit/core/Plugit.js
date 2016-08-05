@@ -255,12 +255,13 @@ class Plugit {
 
       //Internal serve
       app.use(function* (next) {
-        let {backendServePath} = this.plugit.options.app;
-        if (!/^\//.test(backendServePath)) backendServePath = `/${backendServePath}`;
-        if (!/\/$/.test(backendServePath)) backendServePath = `${backendServePath}/`;
-        const prefixReg = new RegExp(backendServePath);
-        if (prefixReg.test(this.path)) {
-          this.path = this.path.replace(prefixReg, '/');
+        // let {backendServePath} = this.plugit.options.app;
+        // if (!/^\//.test(backendServePath)) backendServePath = `/${backendServePath}`;
+        // if (!/\/$/.test(backendServePath)) backendServePath = `${backendServePath}/`;
+        // const prefixReg = new RegExp(backendServePath);
+        // if (prefixReg.test(this.path)) {
+        if (/^\/plugit-backend/.test(this.path)){
+          // this.path = this.path.replace(prefixReg, '/');
           yield serve(path.resolve(__dirname, '../public/build')).bind(this)(next);
         } else yield next;
       });

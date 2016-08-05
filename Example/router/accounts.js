@@ -6,11 +6,11 @@ const AccountWorkflow = require('../workflows/Account');
 
 const accountWorkflow = new AccountWorkflow();
 
-router.post('/', ...accountWorkflow.genMiddleware(accountWorkflow.create));
+router.post('/', ...accountWorkflow.middleware('create'));
 
-router.get('/', ...accountWorkflow.genMiddleware(accountWorkflow.list));
+router.get('/', ...accountWorkflow.middleware('list'));
 
-router.put('/:id', ...accountWorkflow.genMiddleware(accountWorkflow.updateName));
+router.put('/:id', ...accountWorkflow.middleware('updateName'));
 
 module.exports = router.routes();
 

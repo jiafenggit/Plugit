@@ -67,7 +67,7 @@ class Base {
     yield this._checkSafe();
     data._id = this.id;
     data.transaction = this.transaction;
-    yield this.model(data).save();
+    return yield this.model(data).save();
   }
 
   * remove() {

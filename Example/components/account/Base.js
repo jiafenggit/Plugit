@@ -11,7 +11,7 @@ class Base extends Component {
   * updateName(name) {
     yield this._checkSafe();
     if (!name) throw new Error('name is required!');
-    yield this.model.findByIdAndUpdate(this.id, { $set: { name } });
+    return yield this.model.findByIdAndUpdate(this.id, { $set: { name } }, {new: true});
   }
 
 }

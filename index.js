@@ -12,3 +12,4 @@ module.exports.middleware = {
 module.exports.Component = require('./plugit/base/Component');
 module.exports.Plugin = require('./plugit/base/Plugin');
 module.exports.Workflow = require('./plugit/base/Workflow');
+module.exports.Worker = require('./plugit/base/Worker');

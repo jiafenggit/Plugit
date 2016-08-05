@@ -7,7 +7,7 @@ class Event1 extends Base {
   * updateName(name) {
     yield this._checkSafe();
     if (!name) throw new Error('name is required!'); 
-    yield this.model.findByIdAndUpdate(this.id, { $set: { name: `${this.settings.昵称前缀} ${name}` } });
+    return yield this.model.findByIdAndUpdate(this.id, { $set: { name: `${this.settings.昵称前缀} ${name}` } }, {new: true});
   }
 
 }

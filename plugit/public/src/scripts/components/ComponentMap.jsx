@@ -1,5 +1,7 @@
 import React, {Component, PropTypes} from 'react';
 
+import { Button } from 'react-toolbox/lib/button';
+
 export default class ComponentMap extends Component {
 
   render() {
@@ -8,7 +10,8 @@ export default class ComponentMap extends Component {
 
     return (
       <div>
-        <p>{componentMap.group}</p>
+        <h2>{componentMap.group}</h2>
+        <Button label="Hello!" />
       </div>
     );
   }

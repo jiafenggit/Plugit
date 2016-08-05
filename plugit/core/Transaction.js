@@ -75,8 +75,9 @@ class Transaction {
     });
     //Execute the action.
     if (componentInfo && componentInfo.transaction != this.id) throw new PlugitError('The transaction has no access to instance');
-    yield component[operation](...params);
+    const ret = yield component[operation](...params);
     yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': actionId }, { $set: { 'actions.$.state': 'applied' } });
+    return ret;
   }
 
   * _apply() {

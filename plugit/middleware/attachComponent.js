@@ -15,7 +15,7 @@ module.exports = (componentMap) => {
     workflow = componentMap.workflow;
     receptacle = componentMap.receptacle;
     if (!group || !workflow || !receptacle) throw error;
-  } else throw new error;
+  } else throw error;
   return function* (next) {
     if (!this.plugit) throw new PlugitError('Please inject plugit into koa context first');
     const components = this.plugit.components;

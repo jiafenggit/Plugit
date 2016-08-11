@@ -140,13 +140,13 @@ module.exports.componentRegistations = [{
     {
       name: 'create',
       args: 'data:Object',
-      safe: true,
+      danger: true,
       description: 'Create the entity of the instance'
     },
     {
       name: 'remove',
       args: '',
-      safe: true,
+      danger: true,
       description: 'Remove the entity of the instance'
     },
     {

@@ -11,8 +11,16 @@ router.get('/map/components', function* () {
   this.body = yield this.plugit.componentMapDesignTable.list();
 });
 
+router.get('/map/components/groups', function* () {
+  this.body = yield this.plugit.componentMapDesignTable.listGroups();
+});
+
+router.get('/map/components/groups/:group', function* () {
+  this.body = yield this.plugit.componentMapDesignTable.list({ group: this.params.group });
+});
+
 //Update the component name of receptacle by searching in ComponentRegistry;
-router.put('/map/components/:group/:workflow/:receptacle/name', function* () {
+router.put('/map/components/groups/:group/workflows/:workflow/receptacles/:receptacle/name', function* () {
   const {name} = this.req.body;
   const {receptacle, group, workflow} = this.params;
   const componentMap = this.plugit.componentMaps[[group, workflow, receptacle].join('/')];
@@ -30,7 +38,7 @@ router.get('/map/plugins', function* () {
 });
 
 //Push a plugin to the receptacle by searching in PluginRegistry;
-router.put('/map/plugins/:group/:receptacle/plugins', function* () {
+router.put('/map/plugins/groups/:group/receptacles/:receptacle/plugins', function* () {
   const {plugin} = this.req.body;
   const {receptacle, group} = this.params;
   const id = [group, receptacle].join('/');
@@ -43,7 +51,7 @@ router.put('/map/plugins/:group/:receptacle/plugins', function* () {
 });
 
 //Pull a plugin from the receptacle;
-router.delete('/map/plugins/:group/:receptacle/plugins/:plugin', function* () {
+router.delete('/map/plugins/groups/:group/receptacles/:receptacle/plugins/:plugin', function* () {
   const {receptacle, group, plugin} = this.params;
   const id = [group, receptacle].join('/');
   const pluginMap = this.plugit.pluginMaps[id];
@@ -53,7 +61,7 @@ router.delete('/map/plugins/:group/:receptacle/plugins/:plugin', function* () {
 });
 
 //Update a plugin setting
-router.put('/map/plugins/:group/:receptacle/plugins/:plugin/settings/:key', function* () {
+router.put('/map/plugins/groups/:group/receptacles/:receptacle/plugins/:plugin/settings/:key', function* () {
   const {receptacle, group, plugin, key} = this.params;
   const {value} = this.req.body;
   const pluginMap = this.plugit.pluginMaps[[group, receptacle].join('/')];
@@ -63,7 +71,7 @@ router.put('/map/plugins/:group/:receptacle/plugins/:plugin/settings/:key', func
 });
 
 //Update a component setting
-router.put('/map/components/:group/:workflow/:receptacle/settings/:key', function* () {
+router.put('/map/components/groups/:group/workflows/:workflow/receptacles/:receptacle/settings/:key', function* () {
   const {receptacle, group, workflow, key} = this.params;
   const {value} = this.req.body;
   const componentMap = this.plugit.componentMaps[[group, workflow, receptacle].join('/')];
@@ -77,13 +85,21 @@ router.get('/registry/components', function* () {
   this.body = yield this.plugit.componentRegistTable.list();
 });
 
+router.get('/registry/components/types/:type', function *() {
+  this.body = yield this.plugit.componentRegistTable.list({type: this.params.type});
+});
+
+router.get('/registry/components/types/:type/name/:name', function *() {
+  this.body = yield this.plugit.componentRegistTable.findOne({type: this.params.type, name: this.params.name});
+});
+
 //Get all the registed plugins;
 router.get('/registry/plugins', function* () {
   this.body = yield this.plugit.pluginRegistTable.list();
 });
 
 //Reload all plugins, components and receptacles;
-router.put('/reload', function *() {
+router.put('/reload', function* () {
   yield this.plugit.reloadModules();
   this.body = null;
 });

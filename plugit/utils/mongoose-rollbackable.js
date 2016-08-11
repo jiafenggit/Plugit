@@ -15,4 +15,11 @@ module.exports = (schema, options) => {
     }
     next();
   });
+
+  // const historySchema = new Schema ({
+  //   prev: {},
+  //   current: {}
+  // });
+
+
 };

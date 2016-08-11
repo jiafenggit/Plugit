@@ -1,8 +1,14 @@
 import { combineReducers } from 'redux';
-import componentMap from './componentMap';
+import componentMapsReducer from './componentMapsReducer';
+import componentMapsGroupsReducer from './componentMapsGroupsReducer';
+import componentInfoReducer from './componentInfoReducer';
+import componentsByTypeReducer from './componentsByTypeReducer';
 
 const rootReducer = combineReducers({
-  componentMap
+  componentMapsReducer,
+  componentMapsGroupsReducer,
+  componentInfoReducer,
+  componentsByTypeReducer
 });
 
 export default rootReducer;

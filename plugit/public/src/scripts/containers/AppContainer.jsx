@@ -4,4 +4,4 @@ import App from '../components/App';
 
 const AppContainer = connect()(App);
 
-export default App;
+export default AppContainer;

@@ -9,7 +9,7 @@ const schema = new Schema({
   operations: [{
     name: { type: String, required: [true, 'component operation name is requried!'] },
     args: String,
-    safe: { type: Boolean, required: [true, 'component safe concern is required!'], default: false },
+    danger: { type: Boolean, required: [true, 'component safe concern is required!'], default: false },
     description: String
   }],
   attributes: [{

@@ -23,6 +23,10 @@ class ComponentMapDesignTable {
     return yield this.model.find(query);
   }
 
+  * listGroups() {
+    return yield this.model.find().distinct('group');
+  }
+
   * clean() {
     return yield this.model.remove();
   }

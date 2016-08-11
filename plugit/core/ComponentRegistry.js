@@ -53,7 +53,7 @@ class ComponentRegistry {
     yield this.model.findOneAndUpdate({ type: this.type, name: this.name }, { $set: { description } });
   }
 
-  * registOperation({name, args, safe = false, description} = {}, plugit) {
+  * registOperation({name, args, danger = false, description} = {}, plugit) {
     if (typeof name !== 'string' || !name) throw new PlugitError(`Operation [${name}] of component [${this.type}/${this.name}] name should be a string`);
     if (this.registedOperations.includes(name)) throw new PlugitError(`Operation [${name}] in component [${this.type}/${this.name}] has registed`);
     this.registedOperations.push(name);
@@ -61,9 +61,9 @@ class ComponentRegistry {
     if (!info) throw new PlugitError(`Component [${this.type}/${this.name}] is not registed! Please regist it first!`);
     const operation = yield this.model.findOne({ type: this.type, name: this.name, 'operations.name': name });
     if (!operation) {
-      yield this.model.findOneAndUpdate({ type: this.type, name: this.name }, { $push: { operations: { name, args, safe, description } } });
+      yield this.model.findOneAndUpdate({ type: this.type, name: this.name }, { $push: { operations: { name, args, danger, description } } });
     } else {
-      yield this.model.findOneAndUpdate({ type: this.type, name: this.name, 'operations.name': name }, { $set: { 'operations.$': { name, args, safe, description } } });
+      yield this.model.findOneAndUpdate({ type: this.type, name: this.name, 'operations.name': name }, { $set: { 'operations.$': { name, args, danger, description } } });
     }
     plugit.log(`Component [${this.type}/${this.name}] operation [${name}] registed success!`);
   }

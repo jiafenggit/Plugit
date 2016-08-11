@@ -1,11 +1,11 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 
-import ComponentMapListPage from './pages/ComponentMapListPage';
+import ComponentMapsPage from './pages/ComponentMapsPage';
 import AppPage from './pages/AppPage';
 
 export default (
   <Route path={location.pathname} component={AppPage}>
-    <IndexRoute component={ComponentMapListPage} />
+    <IndexRoute component={ComponentMapsPage} />
   </Route>
 );

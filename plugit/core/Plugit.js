@@ -50,7 +50,8 @@ class Plugit {
       path.resolve(__dirname, '../base/Component.js'),
       path.resolve(__dirname, '../base/Plugin.js'),
       path.resolve(__dirname, '../base/Workflow.js'),
-      path.resolve(__dirname, '../middleware')
+      path.resolve(__dirname, '../middleware'),
+      path.resolve(__dirname, '../../index.js')
     ];
     this._internalSchemas = {
       ComponentMap: require('../schemas/ComponentMap'),
@@ -191,13 +192,11 @@ class Plugit {
 
   * _preloadModules() {
     // Pre load some files and for regist and design;
-    const modules = hotLoader([...this._internalHotLoadPaths, ...(this.options.hotLoad.paths || [])]).preload();
-    yield this._loadModules(modules);
+    yield this._loadModules(hotLoader([...this._internalHotLoadPaths, ...(this.options.hotLoad.paths || [])]).preload());
   }
 
   * reloadModules() {
-    const modules = hotLoader([...this._internalHotLoadPaths, ...(this.options.hotLoad.paths || [])]).reload();
-    yield this._loadModules(modules);
+    yield this._loadModules(hotLoader([...this._internalHotLoadPaths, ...(this.options.hotLoad.paths || [])]).reload());
   }
 
   // Start the Plugit server and return a co Promise;  
@@ -205,7 +204,7 @@ class Plugit {
     if (this._started) throw new PlugitError('Server is running! Do not start it again!');
     this._started = true;
     //Start a koa app, and automatic generate registry & design;
-    return co(function* () {
+    return co(function*() {
       // Connect to database and regist models;
       yield this._attachDatabases();
 
@@ -234,7 +233,7 @@ class Plugit {
         app.use(cors(this.options.cors.options));
       }
 
-      app.use(jwt({ secret: this.options.jwt.secret, passthrough: true }));
+      app.use(jwt({secret: this.options.jwt.secret, passthrough: true}));
       app.use(bodyParser(this.options.bodyParser));
       app.use(rbac.middleware({
         rbac: new rbac.RBAC({
@@ -248,14 +247,14 @@ class Plugit {
 
       // Inject Plugit instance into context;
       const plugit = this;
-      app.use(function* (next) {
+      app.use(function*(next) {
         this.plugit = plugit;
         yield next;
       });
 
       //Internal serve
-      app.use(function* (next) {
-        if (/^\/plugit-backend/.test(this.path)){
+      app.use(function*(next) {
+        if (/^\/plugit-backend/.test(this.path)) {
           yield serve(path.resolve(__dirname, '../public/build')).bind(this)(next);
         } else yield next;
       });

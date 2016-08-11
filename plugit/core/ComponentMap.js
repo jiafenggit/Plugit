@@ -58,11 +58,11 @@ class ComponentMap {
   * updateComponentName(name) {
     const info = yield this.info();
     if (name == info.name) throw new PlugitError(`This receptacle [${this.group}/${this.workflow}/${this.receptacle}] is relating to component [${name}] now!`);
-    yield this.model.findOneAndUpdate({ receptacle: this.receptacle, workflow: this.workflow, group: this.group }, { $set: { name } });
+    const settingsAndRef = yield this._generateComponentSettingAndRef(info.type, name);
+    yield this.model.findOneAndUpdate({ receptacle: this.receptacle, workflow: this.workflow, group: this.group }, { $set: Object.assign({ name }, settingsAndRef) });
   }
 
-  * _generateComponentSettingAndRef(type) {
-    const name = 'Base';
+  * _generateComponentSettingAndRef(type, name = 'Base') {
     const componentRegistry = this.componentRegistries[[type, name].join('/')];
     if (!componentRegistry) throw new PlugitError(`Component [${type}/${name}] is not registed`);
     const componentRegistryInfo = yield componentRegistry.info();

@@ -27,6 +27,10 @@ class ComponentRegistTable {
     return yield this.model.find(query);
   }
 
+  * findOne(query) {
+    return yield this.model.findOne(query);
+  }
+
   * clean() {
     return yield this.model.remove();
   }
@@ -55,7 +59,7 @@ class ComponentRegistTable {
       }
       for (let operation of operations || []) {
         if (!Object.getOwnPropertyNames(Component.prototype).includes(operation.name) || typeof Component.prototype[operation.name] !== 'function') throw new PlugitError(`Component [${id}] do not hava operation [${operation.name}]`);
-        if (operation.safe) {
+        if (operation.danger) {
           const regExp = new RegExp(`^\\*?${operation.name}([\\s\\S]*){yieldthis._checkSafe()`);
           if (!regExp.test(Component.prototype[operation.name].toString().replace(/\s/g, ''))) throw new PlugitError(`Operation [${operation.name}] regist in component [${id}] should checkSafe first!`);
         }

@@ -1,0 +1,20 @@
+{
+  "name": "src",
+  "homepage": "https://github.com/miserylee/Plugit",
+  "authors": [
+    "miserylee <miserylee@foxmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "material-design-icons": "^2.2.3"
+  }
+}

@@ -12,5 +12,7 @@ router.get('/', ...accountWorkflow.middleware('list'));
 
 router.put('/:id', ...accountWorkflow.middleware('updateName'));
 
+router.get('/:id/histories', ...accountWorkflow.middleware('histories'));
+
 module.exports = router.routes();
 

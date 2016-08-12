@@ -45,8 +45,7 @@ export default class ComponentMaps extends DataFetcher {
                       <p key='type'>组件类型: <span>{componentMap.type}</span></p>,
                       <Chip key='name' style={{backgroundColor: '#ff4081', color: '#fff'}} className={styles.chipInList}>{componentMap.name}</Chip>
                     ]}
-                  >
-                  </ListItem>
+                  />
                 );
               }),
               <ListDivider />

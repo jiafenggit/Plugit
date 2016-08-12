@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "co": "^4.6.0",
+    "jsondiffpatch": "^0.1.43",
     "koa": "^1.2.1",
     "koa-body": "^1.4.0",
     "koa-cors": "0.0.16",

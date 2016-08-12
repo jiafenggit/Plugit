@@ -4,45 +4,77 @@ const {Workflow, Worker} = require('../../');
 
 class Account extends Workflow {
   get create() {
-    return [
-      new Worker({
-        dispatcher: _ => ['Account/create']
-      }),
-      new Worker({
-        componentMap: 'Account/create/Account',
-        operation: 'create',
-        paramsMaper: payload => [payload.req],
-        packager: res => { return { res }; }
-      })
-    ];
+    return {
+      workers: [
+        new Worker({
+          dispatcher: _ => ['Account/create']
+        }),
+        new Worker({
+          componentMap: 'Account/create/Account',
+          operation: 'create',
+          paramsMaper: payload => [payload.req],
+          packager: res => {
+            return {res};
+          }
+        })
+      ]
+    };
   }
 
   get list() {
-    return [
-      new Worker({
-        dispatcher: _ => ['Account/list']
-      }),
-      new Worker({
-        componentMap: 'Account/list/Account',
-        operation: 'list',
-        packager: res => { return { res }; }
-      })
-    ];
+    return {
+      injectTransaction: false,
+      workers: [
+        new Worker({
+          dispatcher: _ => ['Account/list']
+        }),
+        new Worker({
+          componentMap: 'Account/list/Account',
+          operation: 'list',
+          packager: res => {
+            return {res};
+          }
+        })
+      ]
+    };
   }
 
   get updateName() {
-    return [
-      new Worker({
-        dispatcher: _ => ['Account/updateName']
-      }),
-      new Worker({
-        componentMap: 'Account/updateName/Account',
-        operation: 'updateName',
-        idBinder: payload => payload.req.id,
-        paramsMaper: payload => [payload.req.name],
-        packager: res => { return { res }; }
-      })
-    ];
+    return {
+      workers: [
+        new Worker({
+          dispatcher: _ => ['Account/updateName']
+        }),
+        new Worker({
+          componentMap: 'Account/updateName/Account',
+          operation: 'updateName',
+          idBinder: payload => payload.req.id,
+          paramsMaper: payload => [payload.req.name],
+          packager: res => {
+            return {res};
+          }
+        })
+      ]
+    };
+  }
+
+  get histories() {
+    return {
+      injectTransaction: false,
+      workers: [
+        new Worker({
+          dispatcher: _ => ['Account/histories']
+        }),
+        new Worker({
+          componentMap: 'Account/histories/Account',
+          operation: 'histories',
+          idBinder: payload => payload.req.id,
+          packager: res => {
+            return {res};
+          }
+        })
+      ]
+    };
   }
 }
 
@@ -70,5 +102,12 @@ module.exports.componentBlueprints = [
     receptacle: 'Account',
     type: 'Account',
     description: 'Update account name'
+  },
+  {
+    group: 'Account',
+    workflow: 'histories',
+    receptacle: 'Account',
+    type: 'Account',
+    description: 'Get histories of account'
   }
 ];

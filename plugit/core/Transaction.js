@@ -49,7 +49,7 @@ class Transaction {
     yield this.model.findByIdAndUpdate(this._id, { $set: { state: 'pendding' } });
   }
 
-  * run({component, operation}, ...params) {
+  * run({component, operation, business = {}}, ...params) {
     const Component = require('../base/Component');
     if (!(component instanceof Component)) throw new PlugitError('component must be an instance of Component or class extends Component');
     if (typeof operation !== 'string' || !operation) throw new PlugitError('Action should have an string operation');
@@ -62,6 +62,7 @@ class Transaction {
     yield component.bindTransaction(this.id);
     const actionId = new ObjectId();
     const componentInfo = yield component.info();
+    const history = yield component.initHistory(this.id, operation, business);
     yield this.model.findByIdAndUpdate(this.id, {
       $push: {
         actions: {
@@ -69,7 +70,8 @@ class Transaction {
           component: component.name,
           instance: component.id,
           operation,
-          prev: componentInfo
+          prev: componentInfo,
+          history: history ? history.id : null
         }
       }
     });
@@ -92,7 +94,11 @@ class Transaction {
     const {state, actions} = yield this.info();
     if (state !== 'applied') throw new PlugitError('Transaction state is not applied');
     for (let action of actions) {
-      yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'committed' } });
+      if(action.state === 'applied') {
+        const component = this._attachComponent(action);
+        yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'committed' } });
+        if(action.history) yield component.commitHistory(action.history);
+      }
     }
   }
 
@@ -113,10 +119,17 @@ class Transaction {
     const component = new Component();
     component.id = action.instance;
     //Bind model to component by modelName set in Component;
-    if (['ComponentMap', 'ComponentRegistry', 'PluginMap', 'PluginRegistry', 'Transaction'].includes(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an iternal component, do not use it in custom component!`);
+    if (['core/ComponentMap', 'core/ComponentRegistry', 'core/PluginMap', 'core/PluginRegistry', 'core/Transaction'].includes(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an internal model, do not use it in custom component!`);
+    if (/$history\//.test(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an history model, do not use it in custom component!`);
     const model = this.models[component.modelName];
+    if (!model) throw new PlugitError(`Model [${component.modelName}] has not registed! Check your custom component modelName if it is right`);
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     component.model = model;
+    //Bind the history model;
+    const historyKey = ['history/', component.modelName.split('/')[1], 'History'].join('');
+    const historyModel = this.models[historyKey];
+    if(historyModel && !(historyModel.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
+    component.historyModel = historyModel;
     return component;
   }
 
@@ -124,8 +137,8 @@ class Transaction {
     const {actions, state} = yield this.info();
     if (state !== 'rollback') throw new PlugitError('Transaction state is not rollback');
     for (let action of actions.reverse()) {
+      const component = this._attachComponent(action);
       if (['applied', 'committed'].includes(action.state)) {
-        const component = this._attachComponent(action);
         const componentInfo = yield component.info();
         if (componentInfo && componentInfo.transaction !== this.id) throw new PlugitError('The transaction has no access to instance');
         if (component.rollback) {
@@ -139,6 +152,7 @@ class Transaction {
           }
         }
       }
+      if(action.history) yield component.cancelHistory(action.history);
       yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'cancelled' } });
     }
   }
@@ -205,22 +219,5 @@ class Transaction {
     yield this.model.findByIdAndUpdate(this.id, { $set: { state: 'reverted' } });
   }
 }
-
-Transaction.middleware = {
-  inject: function* (next) {
-    if (!this.plugit) throw new PlugitError('Please inject plugit into koa context first');
-    const components = this.plugit.components;
-    const models = this.plugit.models;
-    this.transaction = yield new Transaction(models, components).create();
-    yield this.transaction.pend();
-    try {
-      yield next;
-    } catch (e) {
-      yield this.transaction.cancel();
-      throw e;
-    }
-    yield this.transaction.commit();
-  }
-};
 
 module.exports = Transaction;

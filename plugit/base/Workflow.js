@@ -3,26 +3,56 @@
 const PlugitError = require('../utils/PlugitError');
 const attachComponent = require('../middleware/attachComponent');
 const Worker = require('./Worker');
+const Transaction = require('../core/Transaction');
 
 //Super workflow for extends;
 class Workflow {
   middleware(name) {
-    if (Array.isArray(this[name])) {
+    if (this[name] && Array.isArray(this[name].workers)) {
       return Workflow.genMiddleware(this[name]);
-    }
+    } else throw new PlugitError(`Workflow name [${name}] is not a valid workflow`);
   }
 }
 
-Workflow.genMiddleware = (workers) => {
-  // Make all request params to req of payload;    
-  let middleware = [function* (next) {
-    if (!this.transaction) throw new PlugitError('Transaction instance is required in a workflow');
+Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory} = {}) => {
+
+  let middleware = [];
+
+  if (injectTransaction) {
+    middleware.push(function* (next) {
+      if (!this.plugit) throw new PlugitError('Please inject plugit into koa context first');
+      const components = this.plugit.components;
+      const models = this.plugit.models;
+      this.transaction = yield new Transaction(models, components).create();
+      yield this.transaction.pend();
+      try {
+        yield next;
+      } catch (e) {
+        yield this.transaction.cancel();
+        throw e;
+      }
+      yield this.transaction.commit();
+    });
+  }
+
+  if (businessForHistory && typeof businessForHistory === 'function') {
+    if (!this.transaction) console.warn('The workflow has not inject a transaction, the businessForHistory function will not work!');
+    else {
+      middleware.push(function *(next) {
+        this.businessForHistory = businessForHistory(this);
+        yield next;
+      });
+    }
+  }
+
+  // Make all request params to req of payload;
+  middleware.push(function*(next) {
     if (!this.plugit) throw new PlugitError('Plugit instance is required in a workflow');
-    this.payload = { req: {} };
+    this.payload = {req: {}};
     Object.assign(this.payload.req, this.req && this.req.body || {}, this.query || {}, this.params || {});
     this.works = [];
     yield next;
-  }];
+  });
 
   workers.forEach((worker) => {
     if (!(worker instanceof Worker)) throw new PlugitError('The worker must be a instance of Worker');
@@ -34,7 +64,7 @@ Workflow.genMiddleware = (workers) => {
       middleware.push(attachComponent(componentMap));
     }
 
-    middleware.push(function* (next) {
+    middleware.push(function*(next) {
       // Do operation to get result;   
       let result;
       if (operation && this.component) {
@@ -50,10 +80,19 @@ Workflow.genMiddleware = (workers) => {
           const id = idBinder(this.payload);
           if (id) component.id = id;
           // Run the action!
-          result = yield this.transaction.run({
-            component,
-            operation
-          }, ...params);
+          // If no transaction has injected, run the operation through the component directly;
+          if (this.transaction && worker.danger) {
+            result = yield this.transaction.run({
+              component,
+              operation,
+              business: this.businessForHistory
+            }, ...params);
+          } else {
+            const Component = require('../base/Component');
+            if (!(component instanceof Component)) throw new PlugitError('component must be an instance of Component or class extends Component');
+            if (typeof component[operation] !== 'function') throw new PlugitError(`Operation [${operation}] of component [${component.name}] has not registed!`);
+            result = yield component[operation](...params);
+          }
 
         }
       }
@@ -92,7 +131,7 @@ Workflow.genMiddleware = (workers) => {
   });
 
   // Check works pool and return res of payload to the client;
-  middleware.push(function* (next) {
+  middleware.push(function*(next) {
     if (this.works.length !== 0) throw new PlugitError(`Maybe you need to add more workers to handle the rest works [${this.works.toString()}]`);
     this.body = this.payload.res;
     yield next;

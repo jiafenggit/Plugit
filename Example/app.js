@@ -14,7 +14,7 @@ new Plugit({
     business: {
       host: 'localhost',
       port: 27017,
-      name: 'plugit2',
+      name: 'plugit_business',
       schemas: {
         Account: require('./schemas/Account')
       }

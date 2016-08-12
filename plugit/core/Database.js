@@ -9,8 +9,12 @@ const mongooseTimestamp = require('mongoose-timestamp');
 const uniqueValidator = require('mongoose-unique-validator');
 const mongooseRollbackable = require('../utils/mongoose-rollbackable');
 mongoose.plugin(mongooseTimestamp);
-mongoose.plugin(mongooseRollbackable);
 mongoose.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' });
+mongoose.plugin(mongooseRollbackable);
+
+const historySchema = require('../schemas/History');
+
+const HISTORY_DB_KEY = 'history';
 
 class Database {
   constructor(plugit) {
@@ -55,8 +59,7 @@ class Database {
           this.plugit.log(`Database [${key}] has connected!`);
           resolve(this._registModels(conn, database, key));
         });
-
-        conn.open(database.host, database.name, database.port, Object.keys({
+        const defaultOptions = {
           db: { native_parser: true },
           server: {
             poolSize: 100,
@@ -65,9 +68,13 @@ class Database {
           },
           user: '',
           pass: '',
-        }, database.options));
+        };
+        if(database.replica) {
+          conn.openSet(database.uri, database.name, Object.assign(defaultOptions, database.options || {}));
+        } else {
+          conn.open(database.host, database.name, database.port, Object.assign(defaultOptions, database.options || {}));
+        }
         this.connections[key] = conn;
-
       });
     });
 
@@ -81,16 +88,25 @@ class Database {
   }
 
   _registModels(conn, database, dbKey) {
+    // history database can not regist any models, just ignore the schemas;
+    if(dbKey === 'history') return {};
     const schemas = database.schemas || {};
     if (!(schemas instanceof Object)) throw new PlugitError('Schemas must be an Object');
     const models = {};
+    const historyConnection = this.connections[HISTORY_DB_KEY];
     Object.keys(schemas).forEach(key => {
       const schema = schemas[key];
       if (!(schema instanceof mongoose.Schema)) throw new PlugitError(`Schema [${key}] is not a instance of mongoose Schema`);
-      const model = conn.model(key.toUnderlineCase(), schema);
-      if (models[[dbKey, key].join('/')]) throw new PlugitError(`Databse [${dbKey}] has registed model [${dbKey}/${key}]`);
-      models[[dbKey, key].join('/')] = model;
+      if (models[[dbKey, key].join('/')]) throw new PlugitError(`Database [${dbKey}] has registed model [${dbKey}/${key}]`);
+      models[[dbKey, key].join('/')] = conn.model(key.toUnderlineCase(), schema);
       this.plugit.log(`Database [${dbKey}] regist model [${dbKey}/${key}] success!`);
+      // only business models should record history;
+      if(dbKey !== 'core') {
+        const historyKey = [key, 'History'].join('');
+        if (models[[HISTORY_DB_KEY, historyKey].join('/')]) throw new PlugitError(`Database [${HISTORY_DB_KEY}] has registed model [${HISTORY_DB_KEY}/${historyKey}]`);
+        models[[HISTORY_DB_KEY, historyKey].join('/')] = historyConnection.model(historyKey.toUnderlineCase(), historySchema);
+        this.plugit.log(`Database [${HISTORY_DB_KEY}] regist model [${HISTORY_DB_KEY}/${historyKey}] success!`);
+      }
     });
     return models;
   }

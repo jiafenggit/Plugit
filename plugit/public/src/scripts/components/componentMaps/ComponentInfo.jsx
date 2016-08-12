@@ -8,6 +8,7 @@ import {IconButton} from 'react-toolbox/lib/button';
 import Tooltip from 'react-toolbox/lib/tooltip';
 import FontIcon from 'react-toolbox/lib/font_icon';
 import Dialog from 'react-toolbox/lib/dialog';
+import Avatar from 'react-toolbox/lib/avatar';
 
 const TooltipIconButton = Tooltip(IconButton);
 const TooltipFontIcon = Tooltip(FontIcon);
@@ -29,8 +30,15 @@ class ComponentInfo extends Component {
     });
   }
 
-  _handleInfoBoxMount(ref) {
-    if (ref) this._infoBoxHeight = ref.scrollHeight;
+  componentWillUpdate(prevProps) {
+    this.refs.infoBox && (this._infoBoxHeight = this.refs.infoBox.scrollHeight);
+    if(!this.props.componentMap || !prevProps.componentMap) return;
+    const {group, workflow, receptacle} = this.props.componentMap;
+    const prevComponentMap = prevProps.componentMap;
+    if(group === prevComponentMap.group && workflow === prevComponentMap.workflow && receptacle === prevComponentMap.receptacle) return;
+    this.setState({
+      showInfo: false
+    });
   }
 
   _handleSettingUpdate(key, value) {
@@ -88,7 +96,7 @@ class ComponentInfo extends Component {
             <Chip style={{backgroundColor: '#ff4081', color: '#fff'}} className={styles.chipInList}>{data.name}</Chip>
           </ListItem>
         </List>
-        <div ref={this._handleInfoBoxMount.bind(this)} style={{transition: '.3s', overflow: 'hidden', height: showInfo ? this._infoBoxHeight: '0' }}>
+        <div ref='infoBox' style={{transition: '.3s', overflow: 'hidden', height: showInfo ? this._infoBoxHeight: '0' }}>
           <List>
             <ListDivider />
             <ListSubHeader caption="配置"/>
@@ -128,8 +136,10 @@ class ComponentInfo extends Component {
             {operations.length > 0 && operations.map((operation, index) => {
               return (
                 <ListItem key={index} caption={`参数: ${operation.args}`} legend={operation.description}>
-                  {operation.danger ? <TooltipFontIcon style={{color: '#ff4081'}} key="1" tooltip="危险方法" tooltipPosition="left" value="error" /> : null}
-                  <Chip key="2" className={styles.chipInList}>{operation.name}</Chip>
+                  {operation.danger ? <TooltipFontIcon style={{color: '#ff4081'}} key="1" tooltip="危险方法" value="error" /> : null}
+                  <Chip key="2" className={styles.chipInList}>
+                    <span>{operation.name}</span>
+                  </Chip>
                 </ListItem>
               );
             }) || <ListItem caption="无方法注册"/>}

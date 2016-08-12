@@ -1,7 +1,7 @@
 const PlugitError = require('../utils/PlugitError');
 
 class Worker {
-  constructor({componentMap, operation, workChecksum, idBinder = _ => null,  paramsMaper = _ => null, packager = _ => null, dispatcher = _ => null} = {}) {
+  constructor({componentMap, operation, workChecksum, idBinder = _ => null,  paramsMaper = _ => null, packager = _ => null, dispatcher = _ => null, danger = true} = {}) {
     if (componentMap) {
       const error = new PlugitError('The componentMap should be either a string like \'group/workflow/receptacle\' or an object contains group & workflow & receptacle');
       if (!componentMap) throw error;
@@ -30,6 +30,7 @@ class Worker {
     this._packager = packager;
     this._workChecksum = workChecksum;
     this._idBinder = idBinder;
+    this._danger = danger;
   }
 
   get componentMap() {
@@ -60,6 +61,9 @@ class Worker {
     return this._idBinder;
   }
 
+  get danger () {
+    return this._danger;
+  }
 }
 
 module.exports = Worker;

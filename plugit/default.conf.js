@@ -12,18 +12,12 @@ module.exports = {
     core: {
       host: 'localhost',
       port: 27017,
-      name: 'plugit',
-      options: {
-        db: { native_parser: true },
-        server: {
-          poolSize: 100,
-          auto_reconnect: true,
-          socketOptions: { keepAlive: 1 }
-        },
-        user: '',
-        pass: '',
-      },
-      schemas: {}
+      name: 'plugit_core'
+    },
+    history: {
+      host: 'localhost',
+      port: 27017,
+      name: 'plugit_history'
     }
   },
   jwt: {
@@ -38,7 +32,11 @@ module.exports = {
     paths: []
   },
   rbac: {
-    rules: require('./rbac/rules')
+    rules: require('./rbac/rules'),
+    identity: ctx => {
+      if (!ctx.state.user) ctx.throw(401);
+      return ctx.state.user;
+    }
   },
   cors: {
     enabled: true,

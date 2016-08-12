@@ -1,12 +1,10 @@
-
 'use strict';
 const PlugitError = require('../utils/PlugitError');
 const ObjectId = require('mongodb').ObjectId;
+const jsondiffpatch = require('jsondiffpatch').create();
+
 //Super component only for extends;
 class Base {
-  constructor(settings = {}) {
-    this._settings = settings;
-  }
 
   get model() {
     if (!this._model) throw new PlugitError('You should set model first');
@@ -17,8 +15,29 @@ class Base {
     this._model = model;
   }
 
+  set settings(settings) {
+    this._settings = settings;
+  }
+
+  get settings() {
+    return this._settings;
+  }
+
+  set historyModel(historyModel) {
+    this._historyModel = historyModel;
+  }
+
+  get historyModel() {
+    return this._historyModel;
+  }
+
   get modelName() {
     throw new PlugitError('You should override modelName getter of you custom component!');
+  }
+
+  // Default enable history of every component;
+  get enableHistory() {
+    return true;
   }
 
   get name() {
@@ -54,13 +73,13 @@ class Base {
     this._transaction = transaction;
     const info = yield this.info();
     if (info && info.transaction) throw new PlugitError('The transaction do not have access to the instance');
-    yield this.model.findByIdAndUpdate(this.id, { $set: { transaction } });
+    yield this.model.findByIdAndUpdate(this.id, {$set: {transaction}});
   }
 
   * unbindTransaction(transaction) {
     const info = yield this.info();
     if (info && info.transaction && info.transaction != transaction) throw new PlugitError('The transaction do not have access to the instance');
-    yield this.model.findByIdAndUpdate(this.id, { $unset: { transaction: "" } });
+    yield this.model.findByIdAndUpdate(this.id, {$unset: {transaction: ""}});
   }
 
   * create(data = {}) {
@@ -84,10 +103,52 @@ class Base {
     if (!this.transaction || (info && info.transaction != this.transaction)) throw new PlugitError('Maybe you are doing an unsafe action! Do not call an write action outside the binding transaction!');
   }
 
+  * initHistory(transaction, operation, business = {}) {
+    if (!this.historyModel || !this.enableHistory) return;
+    let info = yield this.info();
+    if (info) {
+      info = info.toJSON();
+      delete info.updatedAt;
+      delete info.createdAt;
+      delete info.transaction;
+      delete info.__v;
+    }
+    return yield this.historyModel({
+      state: 'init',
+      instance: this.id,
+      operation,
+      business,
+      transaction,
+      prev: info
+    }).save();
+  }
+
+  * commitHistory(historyId) {
+    if (!this.historyModel || !this.enableHistory) return;
+    let info = (yield this.info()).toJSON();
+    delete info.updatedAt;
+    delete info.createdAt;
+    delete info.transaction;
+    delete info.__v;
+    const history = yield this.historyModel.findById(historyId);
+    const prev = history.toJSON().prev;
+    const delta = jsondiffpatch.diff(prev, info);
+    yield this.historyModel.findByIdAndUpdate(historyId, {$set: {delta, state: 'committed'}});
+  }
+
+  * cancelHistory(historyId) {
+    if (!this.historyModel || !this.enableHistory) return;
+    yield this.historyModel.findByIdAndUpdate(historyId, {$set: {state: 'cancelled'}});
+  }
+
+  * histories () {
+    return yield this.historyModel.find({instance: this.id});
+  }
+
   * rollback(prev) {
     yield this._checkSafe();
     if (prev && typeof prev === 'object') {
-      yield this.model.findByIdAndUpdate(this.id, prev, { upsert: true, overwrite: true });
+      yield this.model.findByIdAndUpdate(this.id, prev, {upsert: true, overwrite: true});
     } else {
       yield this.remove();
     }
@@ -116,6 +177,10 @@ module.exports.componentRegistations = [{
       name: 'modelName',
       type: 'String',
       description: 'The name of model related to the component instance'
+    }, {
+      name: 'enableHistory',
+      type: 'Boolean',
+      description: 'Will the component record the history of every change'
     }, {
       name: 'settings',
       type: 'Object',
@@ -167,8 +232,23 @@ module.exports.componentRegistations = [{
     {
       name: 'rollback',
       args: 'prev:Object|null',
-      saft: true,
+      danger: true,
       description: 'The rollback method for component, It can be override by custom component for custom rollback process.'
+    },
+    {
+      name: 'initHistory',
+      args: 'transaction:ObjectId,operation:String,business:Object',
+      description: 'Record the history data of the instance'
+    },
+    {
+      name: 'commitHistory',
+      args: 'historyId|ObjectId',
+      description: 'Commit the history record'
+    },
+    {
+      name: 'cancelHistory',
+      args: 'historyId|ObjectId',
+      description: 'Cancel the history record'
     }
   ],
   settings: [

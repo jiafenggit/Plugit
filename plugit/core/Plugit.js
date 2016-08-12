@@ -119,6 +119,7 @@ class Plugit {
     let databaseOptions = this.options.databases;
     if (!databaseOptions || !databaseOptions.core) throw new PlugitError('Require a core database for internal data saving');
     const internalSchemas = this._internalSchemas;
+    databaseOptions.core.schemas = {};
     Object.keys(internalSchemas).forEach(key => {
       if (databaseOptions.core.schemas[key] || databaseOptions.core.schemas[key.toUnderlineCase()]) throw new PlugitError(`Schema ${key} is internal schema!`);
       databaseOptions.core.schemas[key] = internalSchemas[key];
@@ -239,10 +240,7 @@ class Plugit {
         rbac: new rbac.RBAC({
           provider: new RBACProvider(this.options.rbac.rules)
         }),
-        identity: ctx => {
-          if (!ctx.state.user) ctx.throw(401);
-          return ctx.state.user;
-        }
+        identity: this.options.rbac.identity
       }));
 
       // Inject Plugit instance into context;
@@ -266,11 +264,6 @@ class Plugit {
         app.use(serve(this.options.serve.root, this.options.serve.opts));
       }
 
-      // A mongoose transaction module for avoiding unexpected data write operations; all business routes in Plugit must preinject a transaction middleware. 
-      const Transaction = require('../core/Transaction');
-      //Inject a transaction for all business routes;
-      //Try your actions and the transaction will rollback when your actions boom;
-      app.use(Transaction.middleware.inject);
       //The business api router;
       if (this.options.router && 'GeneratorFunction' == this.options.router.constructor.name) {
         app.use(this.options.router);

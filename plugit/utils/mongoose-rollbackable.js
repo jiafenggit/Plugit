@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 const PlugitError = require('./PlugitError.js');
 
-module.exports = (schema, options) => {
+module.exports = (schema) => {
   schema.add({
     transaction: { type: ObjectId }
   });
@@ -15,11 +15,5 @@ module.exports = (schema, options) => {
     }
     next();
   });
-
-  // const historySchema = new Schema ({
-  //   prev: {},
-  //   current: {}
-  // });
-
 
 };

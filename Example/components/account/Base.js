@@ -27,6 +27,7 @@ module.exports.componentRegistations = [{
     {
       name: 'updateName',
       args: 'name:String',
+      danger: true,
       description: 'The method to update account name.'
     }
   ]

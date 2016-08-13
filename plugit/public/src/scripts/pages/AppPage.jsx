@@ -3,8 +3,9 @@ import AppContainer from '../containers/AppContainer';
 
 export default class AppPage extends Component {
   render() {
+    const {children, ...others} = this.props;
     return (
-      <AppContainer>{this.props.children}</AppContainer>
+      <AppContainer {...others}>{children}</AppContainer>
     );
   }
 }

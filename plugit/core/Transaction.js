@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 const ObjectId = require('mongodb').ObjectId;
 const path = require('path');
 const PlugitError = require('../utils/PlugitError');
+const attachComponent = require('../utils/attachComponent');
 
 class Transaction {
 
   constructor(models = {}, components) {
-    const model = models['core/Transaction'];
+    const model = models['core/PlugitTransaction'];
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     if (typeof components !== 'object') throw new PlugitError('components should be an object');
     this._model = model;
@@ -114,22 +115,8 @@ class Transaction {
   }
 
   _attachComponent(action) {
-    const Component = this.components[action.component];
-    if (!Component) throw new PlugitError(`Component [${action.component}] is not defined!`);
-    const component = new Component();
+    const component = attachComponent(this.components, action.component);
     component.id = action.instance;
-    //Bind model to component by modelName set in Component;
-    if (['core/ComponentMap', 'core/ComponentRegistry', 'core/PluginMap', 'core/PluginRegistry', 'core/Transaction'].includes(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an internal model, do not use it in custom component!`);
-    if (/$history\//.test(component.modelName)) throw new PlugitError(`Component model [${component.modelName}] is an history model, do not use it in custom component!`);
-    const model = this.models[component.modelName];
-    if (!model) throw new PlugitError(`Model [${component.modelName}] has not registed! Check your custom component modelName if it is right`);
-    if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
-    component.model = model;
-    //Bind the history model;
-    const historyKey = ['history/', component.modelName.split('/')[1], 'History'].join('');
-    const historyModel = this.models[historyKey];
-    if(historyModel && !(historyModel.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
-    component.historyModel = historyModel;
     return component;
   }
 

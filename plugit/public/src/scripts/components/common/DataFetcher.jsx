@@ -28,22 +28,6 @@ class DataFetcher extends Component {
 
   render() {
     const {error, loading} = this.props;
-
-    if (error) {
-      return (
-        <FlexBox style={{ padding: '10px 0', textAlign: 'center' }} flexDirection="column">
-          <div>
-            <FlexItem>
-              <Chip>
-                <Avatar style={{ backgroundColor: 'deepskyblue' }} icon="sentiment_dissatisfied" />
-                <span>{error}.Please retry</span>
-              </Chip>
-            </FlexItem>
-            <FlexItem style={{ margin: '20px 0' }}><Button accent floating icon="refresh" onMouseUp={this.handleRefresh.bind(this) } /></FlexItem>
-          </div>
-        </FlexBox>
-      );
-    }
     return (
       <div>
         <FlexBox className={styles.subHeader}>
@@ -51,7 +35,19 @@ class DataFetcher extends Component {
           {loading ? <ProgressBar multicolor className={styles.refreshing} type="circular" mode="indeterminate" /> : null}
           <TooltipButton tooltip="刷新" tooltipPosition="left" onMouseUp={this.handleRefresh.bind(this)} inverse icon='refresh' />
         </FlexBox>
-        {this.renderContent ? this.renderContent() : null}
+        {error ? (
+          <FlexBox style={{ padding: '10px 0', textAlign: 'center' }} flexDirection="column">
+            <div>
+              <FlexItem>
+                <Chip>
+                  <Avatar style={{ backgroundColor: 'deepskyblue' }} icon="sentiment_dissatisfied" />
+                  <span>{error}.Please retry</span>
+                </Chip>
+              </FlexItem>
+              <FlexItem style={{ margin: '20px 0' }}><Button accent floating icon="refresh" onMouseUp={this.handleRefresh.bind(this) } /></FlexItem>
+            </div>
+          </FlexBox>
+        ) : (this.renderContent ? this.renderContent() : null)}
       </div>
     );
   }

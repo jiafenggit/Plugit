@@ -21,6 +21,7 @@ class ComponentsByType extends DataFetcher {
   }
 
   fetchData () {
+    if (!this.props.componentMap) return;
     this.props.dispatch(fetchComponentsByType(this.props.componentMap.type));
   }
 

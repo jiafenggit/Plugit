@@ -1,0 +1,22 @@
+{
+  "roles": {
+    "guest": {},
+    "plugit_manager": {
+      "permissions": [
+        "component management",
+        "plugin management",
+        "reload"
+      ]
+    },
+    "plugit_super": {
+      "permissions" : [
+        "reregist",
+        "add manager",
+        "remove manager"
+      ],
+      "inherited": [
+        "plugit_manager"
+      ]
+    }
+  }
+}

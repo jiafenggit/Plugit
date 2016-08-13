@@ -1,17 +1,10 @@
 import { createStore, applyMiddleware, compose } from 'redux';
-import axios from 'axios';
-import axiosMiddleware from 'redux-axios-middleware';
 import reducer from '../reducers';
-
-const client = axios.create({ 
-  baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:4000/plugit' : '/plugit',
-  timeout: 10000,
-  responseType: 'json'
-});
+import axiosMiddleware from './axiosMiddleware';
 
 export default function configureStore(initialState) {
   const finalCreateStore = compose(
-    applyMiddleware(axiosMiddleware(client)),
+    applyMiddleware(axiosMiddleware),
     window.devToolsExtension ? window.devToolsExtension() : f => f
   )(createStore);
 

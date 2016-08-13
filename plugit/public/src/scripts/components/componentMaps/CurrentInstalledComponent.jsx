@@ -22,6 +22,7 @@ class CurrentInstalledComponent extends DataFetcher {
   }
 
   fetchData() {
+    if(!this.props.componentMap) return;
     const {type, name} = this.props.componentMap;
     this.props.dispatch(fetchComponent(type, name));
   }

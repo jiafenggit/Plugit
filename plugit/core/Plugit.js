@@ -54,11 +54,12 @@ class Plugit {
       path.resolve(__dirname, '../../index.js')
     ];
     this._internalSchemas = {
-      ComponentMap: require('../schemas/ComponentMap'),
-      ComponentRegistry: require('../schemas/ComponentRegistry'),
-      PluginMap: require('../schemas/PluginMap'),
-      PluginRegistry: require('../schemas/PluginRegistry'),
-      Transaction: require('../schemas/Transaction')
+      PlugitComponentMap: require('../schemas/ComponentMap'),
+      PlugitComponentRegistry: require('../schemas/ComponentRegistry'),
+      PlugitPluginMap: require('../schemas/PluginMap'),
+      PlugitPluginRegistry: require('../schemas/PluginRegistry'),
+      PlugitTransaction: require('../schemas/Transaction'),
+      PlugitAuth: require('../schemas/Auth')
     };
   }
 
@@ -130,13 +131,13 @@ class Plugit {
   * _registAndDesign(modules) {
     const models = this.models;
     // Create a componentRegistTalbe for components regist;
-    this._componentRegistTable = new ComponentRegistTable(models['core/ComponentRegistry']);
+    this._componentRegistTable = new ComponentRegistTable(models['core/PlugitComponentRegistry']);
     // Create a componentMapDesignTable for component receptacles design;
-    this._componentMapDesignTable = new ComponentMapDesignTable(models['core/ComponentMap']);
+    this._componentMapDesignTable = new ComponentMapDesignTable(models['core/PlugitComponentMap']);
     // Create a pluginRegistTable for plugins regist;
-    this._pluginRegistTable = new PluginRegistTable(models['core/PluginRegistry']);
+    this._pluginRegistTable = new PluginRegistTable(models['core/PlugitPluginRegistry']);
     // Create a pluginMapDesignTable for plugin receptacles design;
-    this._pluginMapDesignTable = new PluginMapDesignTable(models['core/PluginMap']);
+    this._pluginMapDesignTable = new PluginMapDesignTable(models['core/PlugitPluginMap']);
 
     let finalComponentRegistations = [];
     let finalComponentBlueprints = [];
@@ -236,12 +237,6 @@ class Plugit {
 
       app.use(jwt({secret: this.options.jwt.secret, passthrough: true}));
       app.use(bodyParser(this.options.bodyParser));
-      app.use(rbac.middleware({
-        rbac: new rbac.RBAC({
-          provider: new RBACProvider(this.options.rbac.rules)
-        }),
-        identity: this.options.rbac.identity
-      }));
 
       // Inject Plugit instance into context;
       const plugit = this;
@@ -263,6 +258,13 @@ class Plugit {
       if (this.options.serve && typeof this.options.serve === 'object') {
         app.use(serve(this.options.serve.root, this.options.serve.opts));
       }
+
+      app.use(rbac.middleware({
+        rbac: new rbac.RBAC({
+          provider: new RBACProvider(this.options.rbac.rules)
+        }),
+        identity: this.options.rbac.identity
+      }));
 
       //The business api router;
       if (this.options.router && 'GeneratorFunction' == this.options.router.constructor.name) {

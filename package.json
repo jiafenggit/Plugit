@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development  webpack-dev-server --hot --inline",
     "build": "NODE_ENV=production webpack",
-    "server": "NODE_ENV=development node Example/app"
+    "start": "NODE_ENV=development node Example/app"
   },
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
     "jsx-loader": "^0.13.2",
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
+    "md5": "^2.1.0",
     "node-sass": "^3.8.0",
     "normalize.css": "^4.2.0",
     "react": "^15.3.0",

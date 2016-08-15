@@ -69,13 +69,13 @@ module.exports = {
         query: babelrc
       }, {
         test: /\.less$/,
-        loader: 'style!css?sourceMap&modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!autoprefixer!autoprefixer!less'
+        loader: 'style!css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!autoprefixer!less'
       }, {
         test: /\.scss$/,
-        loader: 'style!css?sourceMap&modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!autoprefixer!sass'
+        loader: 'style!css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!autoprefixer!sass'
       }, {
         test: /\.css$/,
-        loader: 'style!css'
+        loader: 'style!css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!autoprefixer'
       }, {
         test: /images\/.*\.(gif|png|jpe?g)$/i,
         loaders: [

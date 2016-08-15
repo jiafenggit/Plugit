@@ -54,14 +54,14 @@ export default class App extends Component {
   }
 
   render() {
-    const {showLogin} = this.state;
+    const {showLogin, username, password} = this.state;
     return (
       <div>
         <Dialog actions={[
           {label: '登陆', primary: true, onClick: this._handleLogin.bind(this)}
         ]} active={showLogin} title="请输入用户名和密码" type="small">
-          <Input type="text" label="用户名" icon="face" onKeyPress={this._handleKeyPress.bind(this)} onChange={this._handleUsernameChanged.bind(this)}/>
-          <Input type="password" label="密码" icon="lock" maxLength={16} onKeyPress={this._handleKeyPress.bind(this)} onChange={this._handlePasswordChanged.bind(this)}/>
+          <Input type="text" label="用户名" value={username} icon="face" onKeyPress={this._handleKeyPress.bind(this)} onChange={this._handleUsernameChanged.bind(this)}/>
+          <Input type="password" label="密码" icon="lock" value={password} maxLength={16} onKeyPress={this._handleKeyPress.bind(this)} onChange={this._handlePasswordChanged.bind(this)}/>
           <p style={{color: 'red'}}>{this.props.error}</p>
         </Dialog>
         {showLogin ? null : (

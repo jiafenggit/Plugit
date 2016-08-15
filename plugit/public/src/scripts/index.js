@@ -1,4 +1,3 @@
-import '../bower_components/material-design-icons/iconfont/material-icons.css';
 import '../less/common.less';
 import React from 'react';
 import ReactDOM from 'react-dom';

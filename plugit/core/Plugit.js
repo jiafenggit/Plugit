@@ -219,14 +219,14 @@ class Plugit {
       // Set cookie keys;  
       app.keys = this.options.keys;
 
-      // A simple http response error handler; Maybe it can be custom decided;   TODO: Make error handler plugable; 
-      const errorHandler = require('../middleware/errorHandler');
-      app.use(errorHandler);
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
       const ignoreAssets = require('../middleware/ignoreAssets');
       // A simple logger middleware use Plugit Plugin;
       const logger = require('../middleware/logger');
       app.use(ignoreAssets(logger()));
+      // A simple http response error handler; Maybe it can be custom decided;   TODO: Make error handler plugable;
+      const errorHandler = require('../middleware/errorHandler');
+      app.use(errorHandler);
 
       if (process.env.NODE_ENV === 'development' || this.options.cors.enabled) {
         //For cors request in development;
@@ -297,7 +297,7 @@ class Plugit {
   }
 
   error(...params) {
-    console.log(`[${new Date().format('MM-dd hh:mm:ss.S')}][${this.options.name}]`, ...params);
+    console.error(`[${new Date().format('MM-dd hh:mm:ss.S')}][${this.options.name}]`, ...params);
   }
 
 }

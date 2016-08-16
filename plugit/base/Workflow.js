@@ -57,7 +57,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
   workers.forEach((worker) => {
     if (!(worker instanceof Worker)) throw new PlugitError('The worker must be a instance of Worker');
 
-    const {componentMap, operation, idBinder, paramsMaper, packager, dispatcher, workChecksum} = worker;
+    const {componentMap, operation, idBinder, paramsMapper, packager, dispatcher, workChecksum} = worker;
 
     // Attach to component;      
     if (componentMap) {
@@ -74,7 +74,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
         if (this.works.includes(work)) {
           this.works.splice(this.works.indexOf(work), 1);
           // Get params;
-          const params = paramsMaper(this.payload) || [];
+          const params = paramsMapper(this.payload) || [];
           if (!Array.isArray(params)) throw new PlugitError('The paramsMap should return an array');
           // Bind id to the component;
           const id = idBinder(this.payload);

@@ -12,7 +12,7 @@ class Account extends Workflow {
         new Worker({
           componentMap: 'Account/create/Account',
           operation: 'create',
-          paramsMaper: payload => [payload.req],
+          paramsMapper: payload => [payload.req],
           packager: res => {
             return {res};
           }
@@ -49,7 +49,7 @@ class Account extends Workflow {
           componentMap: 'Account/updateName/Account',
           operation: 'updateName',
           idBinder: payload => payload.req.id,
-          paramsMaper: payload => [payload.req.name],
+          paramsMapper: payload => [payload.req.name],
           packager: res => {
             return {res};
           }

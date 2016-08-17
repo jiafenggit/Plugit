@@ -22,7 +22,7 @@ module.exports = (componentMap) => {
     const map = this.plugit.componentMaps[[group, workflow, receptacle].join('/')];
     if (!map) throw new PlugitError(`This receptacle [${group}/${workflow}/${receptacle}] has no component map!`);
     const mapInfo = yield map.info();
-    const component = attachComponent(components, mapInfo.componentName);
+    const component = attachComponent(this.plugit.models, components, mapInfo.componentName);
     //Bind the setting;
     component.settings = mapInfo.settings || {};
     this.component = component;

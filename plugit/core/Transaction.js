@@ -115,7 +115,7 @@ class Transaction {
   }
 
   _attachComponent(action) {
-    const component = attachComponent(this.components, action.component);
+    const component = attachComponent(this.models, this.components, action.component);
     component.id = action.instance;
     return component;
   }

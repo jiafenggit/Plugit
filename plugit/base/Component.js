@@ -125,11 +125,14 @@ class Base {
 
   * commitHistory(historyId) {
     if (!this.historyModel || !this.enableHistory) return;
-    let info = (yield this.info()).toJSON();
-    delete info.updatedAt;
-    delete info.createdAt;
-    delete info.transaction;
-    delete info.__v;
+    let info = yield this.info();
+    if(info) {
+      info = info.toJSON();
+      delete info.updatedAt;
+      delete info.createdAt;
+      delete info.transaction;
+      delete info.__v;
+    }
     const history = yield this.historyModel.findById(historyId);
     const prev = history.toJSON().prev;
     const delta = jsondiffpatch.diff(prev, info);

@@ -48,8 +48,8 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
   // Make all request params to req of payload;
   middleware.push(function*(next) {
     if (!this.plugit) throw new PlugitError('Plugit instance is required in a workflow');
-    this.payload = {req: {}};
-    Object.assign(this.payload.req, this.req && this.req.body || {}, this.query || {}, this.params || {});
+    this.payload = {req: {}, state: this.state};
+    Object.assign(this.payload.req, (this.req && this.req.body) || (this.request && this.request.body) || {}, this.query || {}, this.params || {});
     this.works = [];
     yield next;
   });
@@ -98,7 +98,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
       }
 
       // Dispatch new works;        
-      let newWorks = dispatcher(result) || [];
+      let newWorks = dispatcher(result, this.payload) || [];
       if (!Array.isArray(newWorks)) throw new PlugitError('The dispatcher should return an array');
       newWorks = newWorks.map(w => {
         const error = new PlugitError(`The work dispatched should be a 'componentType/operation[/workChecksum]' like string or an object contains componentType and operation, optional contains workChecksum`);
@@ -120,7 +120,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
       this.works = [...this.works, ...newWorks];
 
       // Package result to payload;        
-      const packages = packager(result) || {};
+      const packages = packager(result, this.payload) || {};
       if (typeof packages !== 'object') throw new PlugitError('The packager should return an object');
       Object.keys(packages).forEach(key => {
         if (this.payload[key]) throw new PlugitError(`Package [${key}] has been in payload, please change the key to another!`);

@@ -66,12 +66,15 @@ class Base {
   }
 
   get query() {
-    return this._query || {};
+    return this._query;
   }
 
   * info() {
     const info = yield this.model.findOne(this.query || {_id: this.id});
-    if(info) this.id = info;
+    if(info) {
+      this.id = info._id;
+      this.query = Object.assign(this.query, {_id: this.id});
+    }
     return info;
   }
 

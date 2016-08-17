@@ -1,7 +1,7 @@
 const PlugitError = require('../utils/PlugitError');
 
 class Worker {
-  constructor({componentMap, operation, workChecksum, idBinder = _ => null,  paramsMapper = _ => null, packager = _ => null, dispatcher = _ => null, danger = true} = {}) {
+  constructor({componentMap, operation, workChecksum, queryBinder = _ => null, idBinder = _ => null,  paramsMapper = _ => null, packager = _ => null, dispatcher = _ => null, danger = true} = {}) {
     if (componentMap) {
       const error = new PlugitError('The componentMap should be either a string like \'group/workflow/receptacle\' or an object contains group & workflow & receptacle');
       if (!componentMap) throw error;
@@ -22,6 +22,7 @@ class Worker {
     if (dispatcher && typeof dispatcher !== 'function') throw new PlugitError('The dispatcher should be a function');
     if (packager && typeof packager !== 'function') throw new PlugitError('The packager should be a function');
     if (idBinder && typeof idBinder !== 'function') throw new PlugitError('The idBinder should be a function');
+    if (queryBinder && typeof queryBinder !== 'function') throw new PlugitError('The queryBinder should be a function');
 
     this._componentMap = componentMap;
     this._operation = operation;
@@ -30,6 +31,7 @@ class Worker {
     this._packager = packager;
     this._workChecksum = workChecksum;
     this._idBinder = idBinder;
+    this._queryBinder = queryBinder;
     this._danger = danger;
   }
 
@@ -59,6 +61,10 @@ class Worker {
 
   get idBinder() {
     return this._idBinder;
+  }
+
+  get queryBinder() {
+    return this._queryBinder;
   }
 
   get danger () {

@@ -61,8 +61,18 @@ class Base {
     return this._id;
   }
 
+  set query(query) {
+    this._query = query;
+  }
+
+  get query() {
+    return this._query || {};
+  }
+
   * info() {
-    return yield this.model.findById(this.id);
+    const info = yield this.model.findOne(this.query || {_id: this.id});
+    if(info) this.id = info;
+    return info;
   }
 
   * list(query) {

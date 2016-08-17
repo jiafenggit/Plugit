@@ -69,7 +69,7 @@ class Transaction {
         actions: {
           _id: actionId,
           component: component.name,
-          instance: component.id,
+          instance: componentInfo ? componentInfo._id : component.id,
           operation,
           prev: componentInfo,
           history: history ? history.id : null

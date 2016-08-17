@@ -57,7 +57,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
   workers.forEach((worker) => {
     if (!(worker instanceof Worker)) throw new PlugitError('The worker must be a instance of Worker');
 
-    const {componentMap, operation, idBinder, paramsMapper, packager, dispatcher, workChecksum, danger} = worker;
+    const {componentMap, operation, idBinder, queryBinder, paramsMapper, packager, dispatcher, workChecksum, danger} = worker;
 
     // Attach to component;      
     if (componentMap) {
@@ -79,6 +79,9 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
           // Bind id to the component;
           const id = idBinder(this.payload);
           if (id) component.id = id;
+          // Bind query to the component;
+          const query = queryBinder(this.payload);
+          if (query) component.query = query;
           // Run the action!
           // If no transaction has injected, run the operation through the component directly;
           // !!! if a component has no model (as a pure component), it runs without transaction

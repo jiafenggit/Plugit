@@ -7,7 +7,7 @@ const jsondiffpatch = require('jsondiffpatch').create();
 class Base {
 
   get model() {
-    if (!this._model) throw new PlugitError('You should set model first');
+    if (!this._model)  throw new PlugitError('You should override modelName getter of your custom component!');
     return this._model;
   }
 
@@ -32,7 +32,7 @@ class Base {
   }
 
   get modelName() {
-    throw new PlugitError('You should override modelName getter of you custom component!');
+    return null;
   }
 
   // Default enable history of every component;

@@ -96,6 +96,7 @@ class Base {
     yield this._checkSafe();
     data._id = this.id;
     data.transaction = this.transaction;
+    Object.assign(data, this.query);
     return yield this.model(data).save();
   }
 

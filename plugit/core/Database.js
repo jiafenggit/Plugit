@@ -62,7 +62,7 @@ class Database {
         const defaultOptions = {
           db: { native_parser: true },
           server: {
-            poolSize: 100,
+            poolSize: 50,
             auto_reconnect: true,
             socketOptions: { keepAlive: 1 }
           },

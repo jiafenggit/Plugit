@@ -1,6 +1,6 @@
 {
   "name": "@miserylee/plugit",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "description": "Plugit! Make your server develop easier~ :D",
   "main": "index.js",
   "scripts": {

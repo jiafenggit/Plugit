@@ -219,6 +219,11 @@ class Plugit {
       // Set cookie keys;  
       app.keys = this.options.app.keys;
 
+      // Custom middleware
+      if(this.options.middleware && Array.isArray(this.options.middleware)) {
+        this.options.middleware.forEach(middleware => app.use(middleware));
+      }
+
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
       const ignoreAssets = require('../middleware/ignoreAssets');
       // A simple logger middleware use Plugit Plugin;
@@ -228,10 +233,9 @@ class Plugit {
       const errorHandler = require('../middleware/errorHandler');
       app.use(errorHandler);
 
+      //enable cors in development or enabled it in custom options;
       if (process.env.NODE_ENV === 'development' || this.options.cors.enabled) {
-        //For cors request in development;
         const cors = require('koa-cors');
-        //enable cors in development or enabled it in custom options;
         app.use(cors(this.options.cors.options));
       }
 

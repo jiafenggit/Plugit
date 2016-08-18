@@ -45,6 +45,9 @@ class Database {
   }
 
   start() {
+    if (!this.plugit.options.enableHistory) {
+      delete this.databases.history;
+    }
     const promises = Object.keys(this.databases).map(key => {
       return new Promise((resolve, reject) => {
         const database = this.databases[key];

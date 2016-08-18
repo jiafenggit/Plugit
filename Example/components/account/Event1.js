@@ -11,6 +11,7 @@ class Event1 extends Base {
   }
 
   * histories() {
+    if (!this.historyModel || !this.enableHistory) return;
     return (yield this.historyModel.find({instance: this.id})).map(history => {
       history = history.toJSON();
       delete history.delta;

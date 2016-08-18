@@ -14,8 +14,6 @@ mongoose.plugin(mongooseRollbackable);
 
 const historySchema = require('../schemas/History');
 
-const HISTORY_DB_KEY = 'history';
-
 class Database {
   constructor(plugit) {
     const {options} = plugit;
@@ -44,73 +42,79 @@ class Database {
     return this._plugit;
   }
 
-  start() {
-    if (!this.plugit.options.enableHistory) {
-      delete this.databases.history;
-    }
-    const promises = Object.keys(this.databases).map(key => {
-      return new Promise((resolve, reject) => {
-        const database = this.databases[key];
-        const conn = mongoose.createConnection();
+  * _connect(key, options) {
+    return yield new Promise((resolve, reject) => {
+      const conn = mongoose.createConnection();
 
-        conn.on('error', err => {
-          conn.close();
-          reject(err);
-        });
-        conn.on('close', _ => this.plugit.error(`Database [${key}] closed!`));
-        conn.on('connected', _ => {
-          this.plugit.log(`Database [${key}] has connected!`);
-          resolve(this._registModels(conn, database, key));
-        });
-        const defaultOptions = {
-          db: { native_parser: true },
-          server: {
-            poolSize: 50,
-            auto_reconnect: true,
-            socketOptions: { keepAlive: 1 }
-          },
-          user: '',
-          pass: '',
-        };
-        if(database.replica) {
-          conn.openSet(database.uri, database.name, Object.assign(defaultOptions, database.options || {}));
-        } else {
-          conn.open(database.host, database.name, database.port, Object.assign(defaultOptions, database.options || {}));
-        }
-        this.connections[key] = conn;
+      conn.on('error', err => {
+        conn.close();
+        reject(err);
       });
-    });
+      conn.on('close', _ => this.plugit.error(`Database [${key}] closed!`));
+      conn.on('connected', _ => {
+        this.plugit.log(`Database [${key}] has connected!`);
+        resolve(conn);
+      });
+      const defaultOptions = {
+        db: { native_parser: true },
+        server: {
+          poolSize: 50,
+          auto_reconnect: true,
+          socketOptions: { keepAlive: 1 }
+        },
+        user: '',
+        pass: '',
+      };
+      if(options.replica) {
+        conn.openSet(options.uri, options.name, Object.assign(defaultOptions, options.options || {}));
+      } else {
+        conn.open(options.host, options.name, options.port, Object.assign(defaultOptions, options.options || {}));
+      }
+      this.connections[key] = conn;
 
+    });
+  }
+
+  start() {
     return co(function* () {
       let models = {};
-      for (let promise of promises) {
-        Object.assign(models, yield promise);
+      for(let key of Object.keys(this.databases)) {
+        const options = this.databases[key];
+        yield this._connect(key, options);
+        let historyKey;
+        if(options.history) {
+          historyKey = [key, 'History'].join('');
+          yield this._connect(historyKey, options.history);
+        }
+        Object.assign(models, this._registModels(options, key, historyKey));
       }
+
       return models;
     }.bind(this));
   }
 
-  _registModels(conn, database, dbKey) {
-    // history database can not regist any models, just ignore the schemas;
-    if(dbKey === 'history') return {};
-    const schemas = database.schemas || {};
+  _registModels(options, DBKey, historyDBKey) {
+    const schemas = options.schemas || {};
     if (!(schemas instanceof Object)) throw new PlugitError('Schemas must be an Object');
     const models = {};
-    const historyConnection = this.connections[HISTORY_DB_KEY];
     Object.keys(schemas).forEach(key => {
       const schema = schemas[key];
       if (!(schema instanceof mongoose.Schema)) throw new PlugitError(`Schema [${key}] is not a instance of mongoose Schema`);
-      if (models[[dbKey, key].join('/')]) throw new PlugitError(`Database [${dbKey}] has registed model [${dbKey}/${key}]`);
-      models[[dbKey, key].join('/')] = conn.model(key.toUnderlineCase(), schema);
-      this.plugit.log(`Database [${dbKey}] regist model [${dbKey}/${key}] success!`);
-      // only business models should record history;
-      if(dbKey !== 'core' && this.plugit.options.enableHistory) {
-        const historyKey = [key, 'History'].join('');
-        if (models[[HISTORY_DB_KEY, historyKey].join('/')]) throw new PlugitError(`Database [${HISTORY_DB_KEY}] has registed model [${HISTORY_DB_KEY}/${historyKey}]`);
-        models[[HISTORY_DB_KEY, historyKey].join('/')] = historyConnection.model(historyKey.toUnderlineCase(), historySchema);
-        this.plugit.log(`Database [${HISTORY_DB_KEY}] regist model [${HISTORY_DB_KEY}/${historyKey}] success!`);
-      }
+      const modelName = [DBKey, key].join('/');
+      if (models[modelName]) throw new PlugitError(`Database [${DBKey}] has registed model [${modelName}]`);
+      models[modelName] = this.connections[DBKey].model(key.toUnderlineCase(), schema);
+      this.plugit.log(`Database [${DBKey}] regist model [${modelName}] success!`);
     });
+    // only business models should record history;
+    if(DBKey !== 'core' && historyDBKey) {
+      Object.keys(schemas).forEach(key => {
+        key = [key, 'History'].join('');
+        const modelName = [historyDBKey, key].join('/');
+        if (models[modelName]) throw new PlugitError(`Database [${historyDBKey}] has registed model [${modelName}]`);
+        models[modelName] = this.connections[historyDBKey].model(key.toUnderlineCase(), historySchema);
+        this.plugit.log(`Database [${historyDBKey}] regist model [${modelName}] success!`);
+      });
+    }
     return models;
   }
 }

@@ -39,7 +39,7 @@ class Base {
   get enableHistory() {
     return true;
   }
-
+  
   get name() {
     return [this.constructor.type, this.constructor.name].join('/');
   }
@@ -159,6 +159,7 @@ class Base {
   }
 
   * histories () {
+    if (!this.historyModel || !this.enableHistory) return;
     return yield this.historyModel.find({instance: this.id});
   }
 

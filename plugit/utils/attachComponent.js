@@ -18,7 +18,7 @@ module.exports = (models, components, componentName) => {
     if (!(model.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     component.model = model;
     //Bind the history model;
-    const historyKey = ['history/', component.modelName.split('/')[1], 'History'].join('');
+    const historyKey = component.modelName.split('/').map(o => [o, 'History'].join('')).join('/');
     const historyModel = models[historyKey];
     if (historyModel && !(historyModel.base instanceof mongoose.constructor)) throw new PlugitError('model must be an instance of mongoose model');
     component.historyModel = historyModel;

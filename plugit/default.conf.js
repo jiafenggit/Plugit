@@ -10,8 +10,6 @@ module.exports = {
     errors: true,
     port: 3000
   },
-  // Enable automatic generate history model
-  enableHistory: true,
   // Databases options
   databases: {
     // Plugit core data
@@ -20,12 +18,6 @@ module.exports = {
       port: 27017,
       name: 'plugit_core'
     },
-    // If enable history, history data will save in database
-    history: {
-      host: 'localhost',
-      port: 27017,
-      name: 'plugit_history'
-    }
   },
   // JWT authorization
   jwt: {

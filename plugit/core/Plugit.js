@@ -217,7 +217,7 @@ class Plugit {
       const app = koa();
 
       // Set cookie keys;  
-      app.keys = this.options.keys;
+      app.keys = this.options.app.keys;
 
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
       const ignoreAssets = require('../middleware/ignoreAssets');
@@ -235,7 +235,7 @@ class Plugit {
         app.use(cors(this.options.cors.options));
       }
 
-      app.use(jwt({secret: this.options.jwt.secret, passthrough: true}));
+      app.use(jwt(this.options.jwt));
       app.use(bodyParser(this.options.bodyParser));
 
       // Inject Plugit instance into context;

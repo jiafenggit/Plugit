@@ -33,6 +33,10 @@ new Plugit({
   },
   serve: {
     root: path.resolve(__dirname, './public')
+  },
+  jwt: {
+    secret: 'A awesome secret',
+    cookie: 'plugit'
   }
 }).start().then(_ => {
   global.plugitInstances[name].log('server start!');

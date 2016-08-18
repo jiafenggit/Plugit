@@ -26,10 +26,18 @@ router.post('/login', function *() {
   const {username, password} = this.req.body;
   if(!username || !password) this.throw(400, 'Username and password are required!');
   const AuthModel = this.plugit.models['core/PlugitAuth'];
-  const {secret, exp} = this.plugit.options.jwt;
+  const {secret, exp, cookie} = this.plugit.options.jwt;
   const auth = yield AuthModel.findOne({username: username.toLowerCase(), password: crypto.sha256(password, key)});
   if(!auth) this.throw(400, 'Username or password is wrong!');
-  this.body = {jwt: jwt.sign({exp: Math.round((Date.now() + exp) / 1000), auth: auth.id, roles: auth.roles}, secret)};
+  const expires = Date.now() + exp;
+  const token = jwt.sign({exp: Math.round(expires / 1000), auth: auth.id, roles: auth.roles}, secret);
+  this.body = {jwt: token};
+  if(cookie) {
+    this.cookies.set(cookie, token, {
+      signed: true,
+      expires: new Date(expires)
+    });
+  }
 });
 
 router.get('/auth', function *() {

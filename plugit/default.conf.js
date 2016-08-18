@@ -22,6 +22,7 @@ module.exports = {
   },
   jwt: {
     secret: 'plugit',
+    passthrough: true,
     exp: 3600000
   },
   bodyParser: {

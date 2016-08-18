@@ -104,7 +104,7 @@ class Database {
       models[[dbKey, key].join('/')] = conn.model(key.toUnderlineCase(), schema);
       this.plugit.log(`Database [${dbKey}] regist model [${dbKey}/${key}] success!`);
       // only business models should record history;
-      if(dbKey !== 'core') {
+      if(dbKey !== 'core' && this.plugit.options.enableHistory) {
         const historyKey = [key, 'History'].join('');
         if (models[[HISTORY_DB_KEY, historyKey].join('/')]) throw new PlugitError(`Database [${HISTORY_DB_KEY}] has registed model [${HISTORY_DB_KEY}/${historyKey}]`);
         models[[HISTORY_DB_KEY, historyKey].join('/')] = historyConnection.model(historyKey.toUnderlineCase(), historySchema);

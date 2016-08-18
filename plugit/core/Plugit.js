@@ -219,11 +219,6 @@ class Plugit {
       // Set cookie keys;  
       app.keys = this.options.app.keys;
 
-      // Custom middleware
-      if(this.options.middleware && Array.isArray(this.options.middleware)) {
-        this.options.middleware.forEach(middleware => app.use(middleware));
-      }
-
       // Ignore some unnecessary handle request for assets through some middleware, such as logger;
       const ignoreAssets = require('../middleware/ignoreAssets');
       // A simple logger middleware use Plugit Plugin;
@@ -232,6 +227,11 @@ class Plugit {
       // A simple http response error handler; Maybe it can be custom decided;   TODO: Make error handler plugable;
       const errorHandler = require('../middleware/errorHandler');
       app.use(errorHandler);
+
+      // Custom middleware, they are behind logger and errorHandler and before other internal middleware.
+      if(this.options.middleware && Array.isArray(this.options.middleware)) {
+        this.options.middleware.forEach(middleware => app.use(middleware));
+      }
 
       //enable cors in development or enabled it in custom options;
       if (process.env.NODE_ENV === 'development' || this.options.cors.enabled) {

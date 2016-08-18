@@ -71,7 +71,7 @@ class Base {
 
   * info() {
     const info = yield this.model.findOne(this.query || {_id: this.id});
-    if(info) {
+    if(info && this.query) {
       this.id = info._id;
       this.query = Object.assign(this.query, {_id: this.id});
     }

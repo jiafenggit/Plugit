@@ -178,7 +178,7 @@ router.put('/reload', rbac.allow(['reload']), function* () {
 });
 
 //re regist all the plugins, components and receptacles;
-router.put('/reregist', rbac.allow(['reregist']), rbac.allow(['plugit_super']), function* () {
+router.put('/reregist', rbac.allow(['reregist']), function* () {
   const {componentRegistTable, componentMapDesignTable, pluginRegistTable, pluginMapDesignTable} = this.plugit;
   yield componentRegistTable.clean();
   yield componentMapDesignTable.clean();

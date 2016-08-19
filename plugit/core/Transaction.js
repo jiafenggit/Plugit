@@ -96,7 +96,7 @@ class Transaction {
     if (state !== 'applied') throw new PlugitError('Transaction state is not applied');
     for (let action of actions) {
       if(action.state === 'applied') {
-        const component = this._attachComponent(action);
+        const component = yield this._attachComponent(action);
         yield this.model.findOneAndUpdate({ _id: this.id, 'actions._id': action._id }, { $set: { 'actions.$.state': 'committed' } });
         if(action.history) yield component.commitHistory(action.history);
       }
@@ -114,9 +114,10 @@ class Transaction {
     yield this.model.findByIdAndUpdate(this.id, { $set: { state: 'committed' } });
   }
 
-  _attachComponent(action) {
+  * _attachComponent(action) {
     const component = attachComponent(this.models, this.components, action.component);
     component.id = action.instance;
+    yield component.bindTransaction(this.id);
     return component;
   }
 
@@ -124,10 +125,10 @@ class Transaction {
     const {actions, state} = yield this.info();
     if (state !== 'rollback') throw new PlugitError('Transaction state is not rollback');
     for (let action of actions.reverse()) {
-      const component = this._attachComponent(action);
+      const component = yield this._attachComponent(action);
       if (['applied', 'committed'].includes(action.state)) {
         const componentInfo = yield component.info();
-        if (componentInfo && componentInfo.transaction !== this.id) throw new PlugitError('The transaction has no access to instance');
+        if (componentInfo && componentInfo.transaction != this.id) throw new PlugitError('The transaction has no access to instance');
         if (component.rollback) {
           yield component.rollback(action.prev);
         } else {
@@ -148,7 +149,7 @@ class Transaction {
     const {actions, state} = yield this.info();
     if (!['applied', 'rollback'].includes(state)) throw new PlugitError('Transaction state is not rollback or applied');
     for (let action of actions) {
-      const component = this._attachComponent(action);
+      const component = yield this._attachComponent(action);
       const componentInfo = yield component.info();
       if (!componentInfo || componentInfo.transaction == this.id) {
         yield component.unbindTransaction(this.id);
@@ -187,12 +188,12 @@ class Transaction {
     yield this.model.findByIdAndUpdate(this.id, { $set: { state: 'cancelled' } });
   }
 
-  // It's an unsafe operation!!! Some versions of data will lost! 
+  // It's an unsafe operation!!! Some versions of data will lost!
   * revert() {
     const {actions, state} = yield this.info();
     if (state !== 'committed') throw new PlugitError('Transaction state is not committed');
     for (let action of actions.reverse()) {
-      const component = this._attachComponent(action);
+      const component = yield this._attachComponent(action);
       const componentInfo = yield component.info();
       if (componentInfo && componentInfo.transaction && componentInfo.transaction != this.id) throw new PlugitError('The transaction has no access to instance');
       const model = component.model;

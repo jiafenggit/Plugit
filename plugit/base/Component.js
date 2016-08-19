@@ -83,8 +83,9 @@ class Base {
   }
 
   * bindTransaction(transaction) {
-    this._transaction = transaction;
+    this._transaction = transactio
     const info = yield this.info();
+    if (info && info.transaction == transaction) return;
     if (info && info.transaction) throw new PlugitError('The transaction do not have access to the instance');
     yield this.model.findByIdAndUpdate(this.id, {$set: {transaction}});
   }

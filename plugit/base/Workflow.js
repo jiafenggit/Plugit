@@ -48,7 +48,7 @@ Workflow.genMiddleware = ({workers, injectTransaction = true, businessForHistory
   // Make all request params to req of payload;
   middleware.push(function*(next) {
     if (!this.plugit) throw new PlugitError('Plugit instance is required in a workflow');
-    this.payload = {req: {}, state: this.state};
+    this.payload = {req: {}, state: this.state, header: this.header};
     Object.assign(this.payload.req, (this.req && this.req.body) || (this.request && this.request.body) || {}, this.query || {}, this.params || {});
     this.works = [];
     yield next;

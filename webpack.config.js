@@ -53,7 +53,7 @@ if (process.env.NODE_ENV == 'development') {
 module.exports = {
   entry: {
     app: path.resolve(SCRIPTS_PATH, 'index.js'),
-    vendors: ['react', 'react-dom', 'redux', 'react-redux', 'redux-axios-middleware', 'axios']
+    vendors: ['react', 'react-dom', 'redux', 'react-redux', 'redux-axios-middleware', 'axios', 'redux-persist', 'react-ace', 'brace']
   },
   output: {
     path: BUILD_PATH,

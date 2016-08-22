@@ -1,14 +1,18 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import reducer from '../reducers';
 import axiosMiddleware from './axiosMiddleware';
+import {persistStore, autoRehydrate} from 'redux-persist';
 
 export default function configureStore(initialState) {
   const finalCreateStore = compose(
     applyMiddleware(axiosMiddleware),
+    autoRehydrate(),
     window.devToolsExtension ? window.devToolsExtension() : f => f
   )(createStore);
 
   const store = finalCreateStore(reducer, initialState);
+
+  persistStore(store);
 
   if (module.hot) {
     // Enable Webpack hot module replacement for reducers

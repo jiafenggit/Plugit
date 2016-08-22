@@ -18,7 +18,7 @@ export class MatchInput extends Component {
 
   componentWillUpdate(nextProps, nextState) {
     if(nextProps.value !== this._initValue) {
-      this.setState({value: nextProps.value, error: null});
+      this.setState(nextProps);
       this._initValue = nextProps.value;
       this._dirty = false;
     }
@@ -32,10 +32,12 @@ export class MatchInput extends Component {
     } else {
       this.setState({value, error: null});
     }
+    this.props.onChange && this.props.onChange(value);
   }
 
   _handleSubmit() {
-    if (!this._dirty || this._initValue === this.state.value) return;
+    if(!this._dirty || this._initValue === this.state.value) this.setState({error: '没有做过修改'});
+    if (!this._dirty || this._initValue === this.state.value || !this.state.value) return;
     this.props.onSubmit && this.props.onSubmit(this.state.value);
   }
 

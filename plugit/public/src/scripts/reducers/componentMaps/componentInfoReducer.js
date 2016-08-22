@@ -1,10 +1,10 @@
-import {FETCH_COMPONENT, FETCH_COMPONENT_SUCCESS, FETCH_COMPONENT_FAIL} from '../actions/component';
+import {FETCH_COMPONENT, FETCH_COMPONENT_SUCCESS, FETCH_COMPONENT_FAIL} from '../../actions/component';
 import {
   UPDATE_COMPONENT_MAP_SETTING,
   UPDATE_COMPONENT_MAP_SETTING_FAIL,
   UPDATE_COMPONENT_MAP_SETTING_SUCCESS
-} from '../actions/componentMaps';
-import {COMPONENT_MAPS_SELECT_RECEPTACLE} from '../actions/componentMaps';
+} from '../../actions/componentMaps';
+import {COMPONENT_MAPS_SELECT_RECEPTACLE} from '../../actions/componentMaps';
 
 const INITIAL_STATE = {data: null, error: null, loading: false, updatingSettings: {}, updateSettingErrors: {}};
 

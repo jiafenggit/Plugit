@@ -5,7 +5,7 @@ import {
   COMPONENT_MAPS_SELECT_RECEPTACLE,
   UPDATE_COMPONENT_MAP_SETTING_SUCCESS,
   CHANGE_COMPONENT_SUCCESS,
-} from '../actions/componentMaps';
+} from '../../actions/componentMaps';
 
 const INITIAL_STATE = {data: [], error: null, loading: false, activeIndex: null};
 

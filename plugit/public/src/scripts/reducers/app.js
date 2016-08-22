@@ -3,10 +3,16 @@
  */
 import {UNAUTHORIZED, LOGIN, LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT, CHECK_AUTH, CHECK_AUTH_FAIL, CHECK_AUTH_SUCCESS} from '../actions/app';
 
+import {REHYDRATE} from 'redux-persist/constants';
+
 const INITIAL_STATE = {isLogged: false, loading: false, error: null, data: null};
 
 export default function (state = INITIAL_STATE, action) {
   switch (action.type) {
+    case REHYDRATE:
+    {
+      return Object.assign({}, state);
+    }
     case UNAUTHORIZED:
     case LOGOUT:
     case CHECK_AUTH_FAIL:

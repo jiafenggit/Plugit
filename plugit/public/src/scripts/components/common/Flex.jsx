@@ -15,9 +15,9 @@ export class FlexBox extends Component {
 
 export class FlexItem extends Component {
   render() {
-    const {order, alignSelf, flex, children, style = {}, className} = this.props;
+    const {order, alignSelf, flex, children, style = {}, className, ...others} = this.props;
     return (
-      <div style={Object.assign({ order, flex, alignSelf}, style) } className={className}>
+      <div {...others} style={Object.assign({ order, flex, alignSelf}, style) } className={className}>
         {children}
       </div>
     );

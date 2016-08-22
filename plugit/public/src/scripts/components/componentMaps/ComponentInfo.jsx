@@ -8,7 +8,6 @@ import {IconButton} from 'react-toolbox/lib/button';
 import Tooltip from 'react-toolbox/lib/tooltip';
 import FontIcon from 'react-toolbox/lib/font_icon';
 import Dialog from 'react-toolbox/lib/dialog';
-import Avatar from 'react-toolbox/lib/avatar';
 
 const TooltipIconButton = Tooltip(IconButton);
 const TooltipFontIcon = Tooltip(FontIcon);

@@ -1,15 +1,5 @@
-'use strict';
 
-//Require extension util to extend internal type prototype methods;
-require('./plugit/utils/extension');
-
-module.exports = require('./plugit/core/Plugit');
-
-module.exports.middleware = {
-  attachComponent: require('./plugit/middleware/attachComponent')
-};
-
-module.exports.Component = require('./plugit/base/Component');
-module.exports.Plugin = require('./plugit/base/Plugin');
-module.exports.Workflow = require('./plugit/base/Workflow');
-module.exports.Worker = require('./plugit/base/Worker');
+module.exports = require('./core');
+module.exports.Component = require('./core/Component');
+module.exports.Workflow = require('sungorus').Workflow;
+module.exports.Work = require('sungorus').Workflow.Work;

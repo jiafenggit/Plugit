@@ -1,11 +1,11 @@
 {
   "name": "plugit",
   "version": "1.0.0",
-  "description": "",
+  "description": "Server development is so easy!😁",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "DEBUG=workflow,sungorus,plugit NODE_ENV=development node ./Example"
+    "start": "DEBUG=workflow,sungorus,plugit,logger,error NODE_ENV=development node ./Example"
   },
   "repository": {
     "type": "git",
@@ -28,17 +28,16 @@
     "koa-etag": "^2.1.1",
     "koa-joi-router": "^4.0.0",
     "koa-jwt": "^1.2.0",
-    "koa-log-requests": "^1.0.0",
     "koa-rbac": "^1.0.5",
     "koa-static": "^2.0.0",
-    "koa-sungorus": "https://github.com/miserylee/koa-sungorus.git",
+    "koa-sungorus": "^0.1.0",
     "koa-validate": "^1.0.7",
     "mixin": "^0.2.0",
     "mongoose": "^4.6.0",
-    "mongoose-json-diff": "https://github.com/miserylee/mongoose-json-diff.git",
-    "mongoose-sungorus": "https://github.com/miserylee/mongoose-sungorus.git",
-    "sungorus": "https://github.com/miserylee/Sungorus.git",
-    "sungorus-history": "https://github.com/miserylee/sungorus-history.git",
+    "mongoose-json-diff": "^0.1.0",
+    "mongoose-sungorus": "^0.1.0",
+    "sungorus": "^0.1.0",
+    "sungorus-history": "^0.1.0",
     "tlan": "^0.1.0"
   },
   "homepage": "https://github.com/miserylee/Plugit#readme"

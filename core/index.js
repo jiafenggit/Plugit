@@ -153,12 +153,18 @@ class Plugit {
     return this._app.use(docs.get(path, options));
   }
 
-  // koa-log-requests
-  // https://github.com/vdemedes/koa-log-requests
+  // logger
   logger () {
-    debug(`[${this._name}] use middleware [koa-log-requests]`);
-    const logger = require('koa-log-requests');
+    debug(`[${this._name}] use middleware [logger]`);
+    const logger = require('../middleware/logger');
     return this._app.use(logger());
+  }
+
+  // jsonError
+  jsonError () {
+    debug(`[${this._name}] use middleware [jsonError]`);
+    const jsonError = require('../middleware/jsonError');
+    return this._app.use(jsonError());
   }
 
   // koa-joi-router

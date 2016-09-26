@@ -10,7 +10,9 @@ const app = new Plugit('Joker', {
   },
   componentPath: path.resolve(__dirname, 'components'),
   workflowPath: path.resolve(__dirname, 'workflow')
-}, err => console.error(err.message));
+}, err => err);
+
+app.jsonError();
 
 app.logger();
 

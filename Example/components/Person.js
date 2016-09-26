@@ -1,11 +1,11 @@
-
+const PlugitError = require('../../utils/PlugitError');
 const Component = require('../../').Component;
 
 class Person extends Component {
 
   * create (name, gender = 'male') {
     if(!name) throw new Error(`name is required, but got ${name}`);
-    if(!['male', 'female'].includes(gender)) throw new Error(`gender must be male or female, but got ${gender}`);
+    if(!['male', 'female'].includes(gender)) throw new PlugitError(`gender must be male or female, but got ${gender}`);
     return yield Person.Model({
       _id: this._id,
       name,
@@ -18,14 +18,14 @@ class Person extends Component {
   }
 
   * sayHello (friend) {
-    if(!friend) throw new Error('friend is required!');
+    if(!friend) throw new PlugitError('friend is required!');
     const person = yield this.getEntity();
     return `${person.name} say hello to ${friend}`;
   }
 
   * updateName (name) {
     const person = yield this.getEntity();
-    if(!person) throw new Error(`Person with id [${this._id}] is not exists`);
+    if(!person) throw new PlugitError(`Person with id [${this._id}] is not exists`);
     person.name = name;
     // console.log('it takes a loooooooong time');
     // yield new Promise(resolve => setTimeout(resolve, 5000));

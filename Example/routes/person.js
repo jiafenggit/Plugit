@@ -19,7 +19,7 @@ module.exports = {
     validate: {
       query: {
         name: Joi.string().required().description('Person name who says hello'),
-        friend: Joi.string().required().description('Friend name')
+        friend: Joi.string().required().description('Friend name').error(new Error('friend is required!'))
       }
     },
     handler: function * () {
@@ -37,13 +37,13 @@ module.exports = {
       `
     },
     validate: {
+      type: 'form',
       params: {
         id: Joi.string().alphanum().length(24).required().description('Person id')
       },
       body: {
         name: Joi.string().required().description('Name to update')
       },
-      type: 'form',
       output: {
         200: {
           body: Joi.string().required().description('Update name result description.')

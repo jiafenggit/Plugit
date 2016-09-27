@@ -1,5 +1,5 @@
 {
-  "name": "plugit",
+  "name": "@miserylee/plugit",
   "version": "1.0.0",
   "description": "Server development is so easy!😁",
   "main": "index.js",
@@ -19,6 +19,7 @@
   "dependencies": {
     "co": "^4.6.0",
     "debug": "^2.2.0",
+    "dir-traveler": "0.0.1",
     "koa": "^1.2.4",
     "koa-better-ratelimit": "^2.1.2",
     "koa-compress": "^1.0.9",

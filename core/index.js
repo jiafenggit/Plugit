@@ -153,6 +153,32 @@ class Plugit {
     return this._app.use(docs.get(path, options));
   }
 
+  // auto docs
+  autoDocs (path, options = {}, routesPath) {
+    const dirTraveler = require('dir-traveler');
+    const routes = dirTraveler(routesPath);
+    options.groups = options.groups || [];
+    options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
+    return this.docs(path, options);
+  }
+
+  // koa-joi-router
+  // https://github.com/koajs/joi-router
+  router ({routes, prefix} = {}, name = 'no name') {
+    const router = require('koa-joi-router')();
+    router.route(routes);
+    router.prefix(prefix);
+    this._app.use(router.middleware());
+    debug(`[${this._name}] router [${name}] success!`);
+  }
+
+  // auto router
+  autoRouter (routesPath) {
+    const dirTraveler = require('dir-traveler');
+    const routes = dirTraveler(routesPath);
+    Object.keys(routes).forEach(key => this.router(require(routes[key]), key));
+  }
+
   // logger
   logger () {
     debug(`[${this._name}] use middleware [logger]`);
@@ -165,16 +191,6 @@ class Plugit {
     debug(`[${this._name}] use middleware [jsonError]`);
     const jsonError = require('../middleware/jsonError');
     return this._app.use(jsonError());
-  }
-
-  // koa-joi-router
-  // https://github.com/koajs/joi-router
-  router ({routes, prefix} = {}) {
-    debug(`[${this._name}] use middleware [koa-joi-router]`);
-    const router = require('koa-joi-router')();
-    router.route(routes);
-    router.prefix(prefix);
-    return this._app.use(router.middleware());
   }
 
   // koaSungorus componentMap

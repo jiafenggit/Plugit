@@ -34,21 +34,15 @@ app.serve(path.resolve(__dirname, 'public'));
 
 app.rbac();
 
-const routesPerson = require('./routes/person');
-const routesAuth = require('./routes/auth');
+const routesPath = path.resolve(__dirname, 'routes');
 
-app.docs('/docs', {
+app.autoDocs('/docs', {
   title: 'Plugit API',
   version: '1.0.0',
-  theme: 'superhero',
-  groups: [
-    routesAuth,
-    routesPerson
-  ]
-});
+  theme: 'superhero'
+}, routesPath);
 
-app.router(routesAuth);
-app.router(routesPerson);
+app.autoRouter(routesPath);
 
 app.listen(3000);
 

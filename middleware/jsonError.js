@@ -7,6 +7,7 @@ module.exports = function () {
       yield next;
     } catch (err) {
       debug(err.message);
+      this.app.emit('error', err, this);
 
       if(err instanceof PlugitError || this.status < 500) {
         this.status = 400;

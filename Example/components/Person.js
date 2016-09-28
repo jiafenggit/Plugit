@@ -17,6 +17,8 @@ class Person extends Component {
     return yield Person.Model.find().skip((page - 1) * limit).limit(limit);
   }
 
+  * getHistoryBusiness () {}
+
   * sayHello (friend) {
     if(!friend) throw new PlugitError('friend is required!');
     const person = yield this.getEntity();

@@ -16,6 +16,8 @@ app.jsonError();
 
 app.logger();
 
+app.compress();
+
 app.cache();
 
 app.ratelimit();
@@ -28,21 +30,15 @@ app.jwt({
   passthrough: true
 });
 
-app.compress();
-
 app.serve(path.resolve(__dirname, 'public'));
 
 app.rbac();
 
-const routesPath = path.resolve(__dirname, 'routes');
-
-app.autoDocs('/docs', {
+app.autoDocsAndRouter('/docs', {
   title: 'Plugit API',
   version: '1.0.0',
   theme: 'superhero'
-}, routesPath);
-
-app.autoRouter(routesPath);
+}, path.resolve(__dirname, 'routes'));
 
 app.listen(3000);
 

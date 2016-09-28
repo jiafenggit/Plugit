@@ -153,15 +153,6 @@ class Plugit {
     return this._app.use(docs.get(path, options));
   }
 
-  // auto docs
-  autoDocs (path, options = {}, routesPath) {
-    const dirTraveler = require('dir-traveler');
-    const routes = dirTraveler(routesPath);
-    options.groups = options.groups || [];
-    options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
-    return this.docs(path, options);
-  }
-
   // koa-joi-router
   // https://github.com/koajs/joi-router
   router ({routes, prefix} = {}, name = 'no name') {
@@ -172,10 +163,29 @@ class Plugit {
     debug(`[${this._name}] router [${name}] success!`);
   }
 
+  // auto docs
+  autoDocs (path, options = {}, routesPath) {
+    const dirTraveler = require('dir-traveler');
+    const routes = dirTraveler(routesPath);
+    options.groups = options.groups || [];
+    options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
+    return this.docs(path, options);
+  }
+
   // auto router
   autoRouter (routesPath) {
     const dirTraveler = require('dir-traveler');
     const routes = dirTraveler(routesPath);
+    Object.keys(routes).forEach(key => this.router(require(routes[key]), key));
+  }
+
+  // auto docs & router
+  autoDocsAndRouter (path, options = {}, routesPath) {
+    const dirTraveler = require('dir-traveler');
+    const routes = dirTraveler(routesPath);
+    options.groups = options.groups || [];
+    options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
+    this.docs(path, options);
     Object.keys(routes).forEach(key => this.router(require(routes[key]), key));
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@miserylee/plugit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Server development is so easy!😁",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,7 @@
     "mongoose": "^4.6.0",
     "mongoose-json-diff": "^0.1.0",
     "mongoose-sungorus": "^0.1.0",
-    "sungorus": "^0.1.0",
+    "sungorus": "^0.2.0",
     "sungorus-history": "^0.1.0",
     "tlan": "^0.1.0"
   },

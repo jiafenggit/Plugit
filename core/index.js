@@ -3,6 +3,8 @@ require('tlan');
 const koa = require('koa');
 const koaSungorus = require('koa-sungorus');
 const sungorusHistory = require('sungorus-history').plugin;
+const sungorusMQ = require('sungorus-mq');
+const dirTraveler = require('dir-traveler');
 
 const debug = require('debug')('plugit');
 
@@ -10,23 +12,41 @@ class Plugit {
   constructor (name, {
     keys = ['Plugit', 'Sungorus', 'I like them!'],
     cacheman = {},
+    mq = {},
     plugins = [],
     componentPath,
     workflowPath,
+    consumerPath,
     errorListener = err => console.error(err)
   } = {}) {
     this._start = new Date();
 
     debug(`[${name}] init start at ${this._start.format('yyyy-MM-dd hh:mm:ss.S')}`);
     if (!name && typeof name === 'string') throw new Error(`name is required and it should be string, but got ${name}`);
+
+    if(mq.enable && consumerPath) {
+      const consumers = dirTraveler(consumerPath);
+      Object.keys(consumers).forEach(key => {
+        consumers[key] = require(consumers[key]);
+        debug(`[${name}] register mq consumer [${key}]`);
+      });
+      mq.consumers = mq.consumers || {};
+      Object.assign(mq.consumers, consumers);
+
+      if(!mq.uri) mq.uri = 'mongodb://localhost:27017/plugit';
+
+      plugins.push([sungorusMQ, mq]);
+    }
+
     const defaultOptions = {
       cacheman: Object.assign({
         host: 'localhost',
         port: 27017,
-        database: 'sungorus'
+        database: 'plugit'
       }, cacheman),
       plugins: [
-        [sungorusHistory, ...plugins]
+        [sungorusHistory],
+        ...plugins
       ],
       componentPath,
       workflowPath
@@ -165,7 +185,6 @@ class Plugit {
 
   // auto docs
   autoDocs (path, options = {}, routesPath) {
-    const dirTraveler = require('dir-traveler');
     const routes = dirTraveler(routesPath);
     options.groups = options.groups || [];
     options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
@@ -174,14 +193,12 @@ class Plugit {
 
   // auto router
   autoRouter (routesPath) {
-    const dirTraveler = require('dir-traveler');
     const routes = dirTraveler(routesPath);
     Object.keys(routes).forEach(key => this.router(require(routes[key]), key));
   }
 
   // auto docs & router
   autoDocsAndRouter (path, options = {}, routesPath) {
-    const dirTraveler = require('dir-traveler');
     const routes = dirTraveler(routesPath);
     options.groups = options.groups || [];
     options.groups.push(...Object.keys(routes).map(key => require(routes[key])));

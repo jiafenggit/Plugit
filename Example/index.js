@@ -8,8 +8,13 @@ const app = new Plugit('Joker', {
     port: 27017,
     database: 'plugitSungorus'
   },
+  mq: {
+    enable: true,
+    visibility: 2
+  },
   componentPath: path.resolve(__dirname, 'components'),
-  workflowPath: path.resolve(__dirname, 'workflow')
+  workflowPath: path.resolve(__dirname, 'workflow'),
+  consumerPath: path.resolve(__dirname, 'consumers')
 }, err => err);
 
 app.jsonError();

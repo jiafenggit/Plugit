@@ -67,5 +67,14 @@ module.exports = new Workflow([
   //   }
   // })
 ], {
-  description: 'Say hello.'
+  description: 'Say hello.',
+  mq: [{
+    operation: 'sendMail',
+    paramsMapper: payload => {
+      return [{
+        to: payload.person.id,
+        content: payload.outbound
+      }];
+    }
+  }]
 });

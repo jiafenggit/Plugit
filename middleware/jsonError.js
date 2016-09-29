@@ -6,14 +6,17 @@ module.exports = function () {
     try {
       yield next;
     } catch (err) {
-      debug(err.message);
+      debug(err.status, err.message);
       this.app.emit('error', err, this);
+
+      const status = err.status;
 
       if(err instanceof PlugitError) {
         this.status = 400;
         this.body = { error: err.message };
-      } else if(this.status < 500) {
+      } else if(status < 500) {
         this.body = { error: err.message };
+        this.status = status;
       } else {
         this.status = 500;
         if (err.errors) {

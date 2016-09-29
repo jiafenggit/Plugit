@@ -1,26 +1,24 @@
 {
-  "roles": {
-    "guest": {},
-    "user": {
-      "permissions": [
-        "user api"
-      ]
-    },
-    "admin": {
-      "permissions": [
-        "admin api"
-      ],
-      "inherited": [
-        "user"
-      ]
-    },
-    "super": {
-      "permissions" : [
-        "super admin api"
-      ],
-      "inherited": [
-        "admin"
-      ]
-    }
+  "guest": {},
+  "user": {
+    "permissions": [
+      "user api"
+    ]
+  },
+  "admin": {
+    "permissions": [
+      "admin api"
+    ],
+    "inherited": [
+      "user"
+    ]
+  },
+  "super": {
+    "permissions": [
+      "super admin api"
+    ],
+    "inherited": [
+      "admin"
+    ]
   }
 }

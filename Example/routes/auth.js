@@ -7,7 +7,7 @@ module.exports = {
   extendedDescription: 'Just get the token!',
   prefix: '/auth',
   routes: [{
-    method: 'post',
+    method: 'get',
     path: '/',
     handler: function * () {
       const now = new Date();

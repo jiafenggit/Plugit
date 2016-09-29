@@ -13,7 +13,7 @@ class RBACProvider extends rbac.RBAC.providers.JsonProvider {
 
       for (let i = 0, iLen = roles.length; i < iLen; ++i) {
         if (cache[roles[i]] >= depth) {
-          let role = rules['roles'] && rules['roles'][roles[i]];
+          let role = rules[roles[i]];
 
           if (role) {
             if (Array.isArray(role['inherited'])) {
@@ -24,9 +24,17 @@ class RBACProvider extends rbac.RBAC.providers.JsonProvider {
           }
         }
       }
-
+      
       return userRoles;
     })(user && user.roles || [], {}, 1);
+  }
+
+  getPermissions(role) {
+    return this._rules && this._rules[role] && this._rules[role]['permissions'] || [];
+  }
+
+  getAttributes(role) {
+    return this._rules && this._rules[role] && this._rules[role]['attributes'] || [];
   }
 
 }

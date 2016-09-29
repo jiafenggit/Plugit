@@ -101,11 +101,10 @@ class Plugit {
 
   // rbac
   // https://github.com/yanickrochon/koa-rbac
-  rbac (options = {}) {
+  rbac (rules = require('../utils/rbac/rules.json'), options = {}) {
     debug(`[${this._name}] use middleware [koa-rbac]`);
     const rbac = require('koa-rbac');
     const RBACProvider = require('../utils/rbac/RBACProvider');
-    const rules = require('../utils/rbac/rules.json');
     return this._app.use(rbac.middleware(Object.assign({
       rbac: new rbac.RBAC({
         provider: new RBACProvider(rules)

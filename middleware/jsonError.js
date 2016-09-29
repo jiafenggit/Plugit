@@ -6,7 +6,7 @@ module.exports = function () {
     try {
       yield next;
     } catch (err) {
-      debug(err.status, err.message);
+      debug(err.status || 500, err.message);
       this.app.emit('error', err, this);
 
       const status = err.status;

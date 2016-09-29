@@ -74,6 +74,10 @@ class Plugit {
     debug(`[${name}] init success at ${new Date().format('yyyy-MM-dd hh:mm:ss.S')}`);
   }
 
+  get core () {
+    return this._app;
+  }
+
   // use middleware, all the koa middleware are supported;
   use (middleware) {
     return this._app.use(middleware);

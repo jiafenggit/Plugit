@@ -9,8 +9,10 @@ module.exports = function () {
       debug(err.message);
       this.app.emit('error', err, this);
 
-      if(err instanceof PlugitError || this.status < 500) {
+      if(err instanceof PlugitError) {
         this.status = 400;
+        this.body = { error: err.message };
+      } else if(this.status < 500) {
         this.body = { error: err.message };
       } else {
         this.status = 500;

@@ -206,7 +206,7 @@ class Plugit {
     options.groups = options.groups || [];
     options.groups.push(...Object.keys(routes).map(key => require(routes[key])));
     this.docs(path, options);
-    Object.keys(routes).forEach(key => this.router(require(routes[key]), key));
+    Object.keys(routes).forEach(key => this.router(require(routes[key]), require('path').parse(key).name));
   }
 
   // logger

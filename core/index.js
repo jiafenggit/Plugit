@@ -25,10 +25,12 @@ class Plugit {
     if (!name && typeof name === 'string') throw new Error(`name is required and it should be string, but got ${name}`);
 
     if(mq.enable && consumerPath) {
-      const consumers = dirTraveler(consumerPath);
-      Object.keys(consumers).forEach(key => {
-        consumers[key] = require(consumers[key]);
-        debug(`[${name}] register mq consumer [${key}]`);
+      const consumerPaths = dirTraveler(consumerPath);
+      const consumers = {};
+      Object.keys(consumerPaths).forEach(consumer => {
+        const consumerName = consumer.slice(0, consumer.lastIndexOf('.'));
+        consumers[consumerName] = require(consumerPaths[consumer]);
+        debug(`[${name}] register mq consumer [${consumerName}]`);
       });
       mq.consumers = mq.consumers || {};
       Object.assign(mq.consumers, consumers);

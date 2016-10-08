@@ -20,7 +20,10 @@ module.exports = function () {
       } else {
         this.status = 500;
         if (err.errors) {
-          err.errors.forEach(error => debug(error.message));
+          Object.keys(err.errors).forEach(key => {
+            const error = err.errors[key];
+            debug(error.message);
+          });
         }
         this.body = { error: 'Server internal error' };
       }

@@ -1,6 +1,6 @@
 {
   "name": "@miserylee/plugit",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Server development is so easy!😁",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "koa-docs": "https://github.com/miserylee/koa-docs.git",
     "koa-etag": "^2.1.1",
     "koa-joi-router": "^4.0.0",
-    "koa-jwt": "^1.2.0",
+    "koa-jwt": "github:koajs/jwt#v1.2.0",
     "koa-rbac": "^1.0.5",
     "koa-static": "^2.0.0",
     "koa-sungorus": "^0.1.0",

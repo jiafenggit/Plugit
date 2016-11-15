@@ -1,6 +1,6 @@
 {
   "name": "plu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Server development is so easy!😁",
   "main": "index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "mongoose-sungorus": "^0.1.0",
     "sungorus": "^0.2.0",
     "sungorus-history": "^0.1.0",
-    "sungorus-mq": "^0.1.1",
+    "sungorus-mq": "^0.2.0",
     "tlan": "^0.1.0"
   },
   "homepage": "https://github.com/miserylee/Plugit#readme"
